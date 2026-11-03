@@ -1,0 +1,243 @@
+.auth {
+  display: grid;
+  grid-template-columns: 698fr 742fr;
+  min-height: 100vh;
+}
+
+.auth__lateral {
+  display: flex;
+  flex-direction: column;
+  padding: 70px 62px 60px;
+  background: var(--verde-900);
+  color: var(--branco);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.marca__logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  background: var(--verde-700);
+  flex-shrink: 0;
+}
+
+.marca__nome {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.auth__chamada {
+  margin-top: 139px;
+}
+
+.auth__titulo-lateral {
+  max-width: 526px;
+  font-size: 45px;
+  font-weight: 800;
+  line-height: 1.36;
+  letter-spacing: -0.02em;
+}
+
+.auth__beneficios {
+  display: flex;
+  flex-direction: column;
+  gap: 31px;
+  margin-top: 43px;
+  padding: 0;
+  list-style: none;
+}
+
+.auth__beneficios li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 25px;
+  letter-spacing: -0.02em;
+}
+
+.auth__beneficios img {
+  flex-shrink: 0;
+}
+
+.auth__rodape {
+  margin-top: auto;
+  font-size: 25px;
+  letter-spacing: -0.02em;
+}
+
+.auth__conteudo {
+  padding: 67px 46px 60px;
+  background: var(--superficie);
+}
+
+.auth__cabecalho {
+  margin-bottom: 129px;
+}
+
+.auth__titulo {
+  font-size: 45px;
+  font-weight: 800;
+  line-height: 1.36;
+  letter-spacing: -0.02em;
+  color: var(--verde-900);
+}
+
+.auth__subtitulo {
+  margin-top: -13px;
+  font-size: 35px;
+  letter-spacing: -0.02em;
+  color: var(--cinza-texto);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+  max-width: 647px;
+}
+
+.form__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form__label {
+  font-size: 25px;
+  letter-spacing: -0.02em;
+  color: var(--cinza-texto);
+}
+
+.form__campo input {
+  width: 100%;
+  height: 69px;
+  padding: 0 24px;
+  border: 2px solid var(--borda);
+  border-radius: 20px;
+  background: var(--branco);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  font: 400 22px var(--fonte);
+  color: var(--verde-900);
+  transition: border-color 0.15s ease;
+}
+
+.form__campo input:focus {
+  outline: none;
+  border-color: var(--verde-700);
+}
+
+.form__campo--erro input {
+  border-color: var(--erro);
+}
+
+.form__erro {
+  font-size: 16px;
+  color: var(--erro);
+}
+
+.form__alerta {
+  padding: 14px 20px;
+  border: 1px solid var(--erro);
+  border-radius: 12px;
+  background: var(--erro-fundo);
+  font-size: 18px;
+  color: var(--erro);
+}
+
+.form__acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin-top: 40px;
+}
+
+.form__alternativa {
+  max-width: 249px;
+  font-size: 25px;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: var(--cinza-texto);
+}
+
+.form__alternativa a {
+  font-weight: 600;
+  color: var(--verde-700);
+}
+
+@media (max-width: 1100px) {
+  .auth__lateral {
+    padding: 48px 40px;
+  }
+
+  .auth__chamada {
+    margin-top: 96px;
+  }
+
+  .auth__titulo-lateral,
+  .auth__titulo {
+    font-size: 36px;
+  }
+
+  .auth__subtitulo {
+    font-size: 28px;
+  }
+
+  .auth__beneficios li,
+  .auth__rodape,
+  .form__label,
+  .form__alternativa {
+    font-size: 20px;
+  }
+
+  .auth__conteudo {
+    padding: 48px 40px;
+  }
+
+  .auth__cabecalho {
+    margin-bottom: 72px;
+  }
+}
+
+@media (max-width: 800px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+
+  .auth__lateral {
+    padding: 32px 24px;
+  }
+
+  .auth__chamada,
+  .auth__rodape {
+    display: none;
+  }
+
+  .auth__conteudo {
+    padding: 40px 24px;
+  }
+
+  .auth__titulo {
+    font-size: 32px;
+  }
+
+  .auth__subtitulo {
+    margin-top: -6px;
+    font-size: 22px;
+  }
+
+  .auth__cabecalho {
+    margin-bottom: 48px;
+  }
+
+  .form__campo input {
+    height: 56px;
+    font-size: 18px;
+  }
+}
