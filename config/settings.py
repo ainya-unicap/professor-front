@@ -55,7 +55,6 @@ DATABASES = {
     }
 }
 
-SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Recife"
@@ -67,3 +66,6 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_AGE = 60 * 60 * 8

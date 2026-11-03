@@ -1,0 +1,30 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}">{% endblock %}
+
+{% block body %}
+<div class="auth">
+  <aside class="auth__lateral">
+    <div class="marca">
+      <span class="marca__logo" aria-hidden="true"></span>
+      <span class="marca__nome">Forrageia</span>
+    </div>
+
+    <div class="auth__chamada">
+      <h2 class="auth__titulo-lateral">{% block chamada %}{% endblock %}</h2>
+      <ul class="auth__beneficios">
+        <li><img src="{% static 'img/icon-check.svg' %}" alt="" width="31" height="26">Crie turmas e compartilhe um link com os alunos</li>
+        <li><img src="{% static 'img/icon-check.svg' %}" alt="" width="31" height="26">Veja quem já entregou o relatório</li>
+        <li><img src="{% static 'img/icon-check.svg' %}" alt="" width="31" height="26">Baixe os PDFs dos alunos em um só lugar</li>
+      </ul>
+    </div>
+
+    <p class="auth__rodape">Acesso para professores</p>
+  </aside>
+
+  <main class="auth__conteudo">
+    {% block conteudo %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
