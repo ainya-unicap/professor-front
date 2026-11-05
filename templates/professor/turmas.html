@@ -1,0 +1,47 @@
+{% extends "professor/base_professor.html" %}
+{% load static %}
+
+{% block title %}Turmas · Forrageia{% endblock %}
+
+{% block js %}<script src="{% static 'js/modal.js' %}" defer></script>{% endblock %}
+
+{% block conteudo %}
+<div class="pagina pagina--larga">
+  <section class="destaque destaque--compacto">
+    <h1 class="destaque__titulo">Olá, {{ primeiro_nome }}</h1>
+    <a class="botao-claro botao-claro--pilula" href="{% url 'professor:nova_turma' %}" data-abrir-modal="modal-nova-turma">Nova Turma</a>
+  </section>
+
+  <header class="secao-titulo">
+    <h2 class="secao-titulo__nome">Turmas</h2>
+    <p class="secao-titulo__descricao">Gerencie alunos, convites e relatórios.</p>
+  </header>
+
+  {% if turmas %}
+    <ul class="turmas-lista">
+      {% for turma in turmas %}
+        <li class="turma-linha">
+          <div class="turma-linha__info">
+            <p class="turma-linha__nome">{{ turma.nome }}</p>
+            <p class="turma-linha__detalhe">{{ turma.periodo }} · {{ turma.alunos_legenda }}</p>
+          </div>
+          <div class="turma-linha__progresso">
+            <div class="progresso__trilha progresso__trilha--larga" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ turma.progresso }}" aria-label="Relatórios entregues em {{ turma.nome }}">
+              <div class="progresso__barra" style="width: {{ turma.progresso }}%"></div>
+            </div>
+            <p class="turma-linha__legenda">{{ turma.entregues_legenda }}{% if turma.aguardando_correcao %} · {{ turma.aguardando_correcao }} aguardando correção{% endif %}</p>
+          </div>
+          <a class="botao-pilula botao-pilula--abrir" href="{% url 'professor:turma' turma.id %}" aria-label="Abrir {{ turma.nome }}">Abrir</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="cartao vazio">
+      <p>Você ainda não tem turmas.</p>
+      <a class="botao botao--primario botao--pequeno" href="{% url 'professor:nova_turma' %}" data-abrir-modal="modal-nova-turma">Criar turma</a>
+    </div>
+  {% endif %}
+</div>
+
+{% include "professor/_modal_nova_turma.html" %}
+{% endblock %}

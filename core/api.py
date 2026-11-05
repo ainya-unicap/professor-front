@@ -109,3 +109,74 @@ def criar_turma(request, nome, periodo, instituicao):
     if not resposta.ok:
         raise ErroAPI("Não foi possível criar a turma agora. Tente novamente.", status=resposta.status_code)
     return resposta.json()
+
+
+class NaoEncontrado(ErroAPI):
+    def __init__(self):
+        super().__init__("Não encontrado.", status=404)
+
+
+def _verificar(resposta, mensagem):
+    if resposta.status_code == 404:
+        raise NaoEncontrado()
+    if resposta.status_code == 400:
+        raise ErroValidacao(resposta.json())
+    if not resposta.ok:
+        raise ErroAPI(mensagem, status=resposta.status_code)
+    return resposta
+
+
+def buscar_turma(request, turma_id):
+    resposta = chamar(request, "GET", f"turmas/{turma_id}/")
+    return _verificar(resposta, "Não foi possível carregar a turma agora.").json()
+
+
+def salvar_prazos(request, turma_id, prazos):
+    resposta = chamar(request, "PATCH", f"turmas/{turma_id}/prazos/", prazos)
+    return _verificar(resposta, "Não foi possível salvar os prazos agora.").json()
+
+
+def gerar_novo_codigo(request, turma_id):
+    resposta = chamar(request, "POST", f"turmas/{turma_id}/novo-codigo/")
+    return _verificar(resposta, "Não foi possível gerar um novo código agora.").json()
+
+
+def buscar_relatorio(request, relatorio_id):
+    resposta = chamar(request, "GET", f"relatorios/{relatorio_id}/")
+    return _verificar(resposta, "Não foi possível carregar o relatório agora.").json()
+
+
+def salvar_avaliacao(request, relatorio_id, nota, feedback, concluir):
+    resposta = chamar(
+        request,
+        "PATCH",
+        f"relatorios/{relatorio_id}/avaliacao/",
+        {"nota": nota, "feedback": feedback, "concluir": concluir},
+    )
+    return _verificar(resposta, "Não foi possível salvar a avaliação agora.").json()
+
+
+def baixar_arquivo(request, caminho):
+    resposta = chamar(request, "GET", caminho)
+    _verificar(resposta, "Não foi possível baixar o arquivo agora.")
+    return resposta
+
+
+def contar_pendentes(request):
+    try:
+        resposta = chamar(request, "GET", "professor/pendentes/")
+    except SessaoExpirada:
+        raise
+    except ErroAPI:
+        return None
+    return resposta.json().get("aguardando_correcao") if resposta.ok else None
+
+
+def listar_turmas(request):
+    resposta = chamar(request, "GET", "turmas/")
+    return _verificar(resposta, "Não foi possível carregar as turmas agora.").json()
+
+
+def listar_relatorios_da_turma(request, turma_id):
+    resposta = chamar(request, "GET", f"turmas/{turma_id}/relatorios/")
+    return _verificar(resposta, "Não foi possível carregar os relatórios agora.").json()

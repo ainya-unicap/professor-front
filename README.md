@@ -14,9 +14,10 @@ core/                login, cadastro, sessão e cliente da API
   sessao.py          como o login fica guardado na sessão e quais páginas exigem login
   views.py           telas de login, cadastro e logout
 professor/           telas da área do professor
-  forms.py           formulário de nova turma
+  forms.py           formulários de nova turma, prazos e avaliação
   painel.py          prepara os textos e números do painel a partir da resposta da API
-  views.py           painel e criação de turma
+  apresentacao.py    rótulos de status, seções do relatório e formatação da nota
+  views.py           painel, turma e correção
 templates/
   base/              estrutura HTML comum a todas as páginas
   auth/              login e cadastro (base_auth.html é o layout com o painel verde)
@@ -27,6 +28,7 @@ static/
   css/auth.css       layout das telas de login e cadastro
   css/professor.css  menu lateral, painel, cartões e modal
   js/modal.js        abre e fecha os modais
+  js/turma.js        copiar link/código, mostrar todos os alunos e confirmar novo link
   img/               imagens
 ```
 
@@ -55,7 +57,12 @@ Navegador  →  frontend (Django)  →  API do backend
 | `/login/` | Fazer login | Pronta |
 | `/cadastro/` | Criar conta | Pronta |
 | `/painel/` | Painel do professor | Pronta |
+| `/turmas/` | Lista de turmas | Pronta |
 | `/turmas/nova/` | Modal Nova Turma | Pronta |
+| `/turmas/<id>/` | Detalhe da turma (prazos, convite e alunos) | Pronta |
+| `/turmas/<id>/correcoes/` | Relatórios entregues da turma | Pronta |
+| `/correcoes/` | Atalho do menu: abre os relatórios da turma com mais pendências | Pronta |
+| `/correcoes/<id>/` | Detalhe da correção (relatório e avaliação) | Pronta |
 
 A rota `/` redireciona para `/login/`. Quem já está logado e abre o login ou o cadastro vai direto para o painel.
 
@@ -64,14 +71,35 @@ A rota `/` redireciona para `/login/`. Quem já está logado e abre o login ou o
 - O painel busca tudo em uma única chamada à API e mostra: o resumo do semestre, os indicadores, as turmas (com o progresso de entregas), os relatórios aguardando correção e os atalhos.
 - O botão **Nova Turma** abre um modal (`<dialog>`) por cima do painel. O formulário envia para `/turmas/nova/`. Se houver erro, o painel é exibido de novo com o modal aberto e as mensagens nos campos. Se der certo, volta para o painel com um aviso mostrando o código de convite da turma.
 - Sem JavaScript, o botão leva para `/turmas/nova/`, que mostra o mesmo modal já aberto.
-- Itens que levam a telas ainda não feitas (Turma, Correções, Definir prazos, Ver todas, atalhos) aparecem desativados, com a dica "Em breve".
+- Depois de criar a turma, o professor vai direto para o detalhe dela, onde já encontra o link e o código de convite.
+- As turmas da lista e os relatórios aguardando correção levam para as telas de detalhe. "Definir prazos" e "Convidar alunos" abrem a primeira turma da lista.
+- O menu lateral leva para Painel, Turmas e Correções. "Ver todas" abre a lista de turmas e "Abrir caixa de entrada" abre as correções.
+- Itens que levam a telas ainda não feitas (Checklists e Semestres anteriores) aparecem desativados, com a dica "Em breve".
+
+### Turmas e Correções
+
+- **Turmas**: lista todas as turmas com o progresso de entregas e o botão Abrir. O botão Nova Turma abre o mesmo modal do painel; se houver erro, o modal reaparece nesta tela.
+- **Correções**: tabela com os relatórios entregues da turma (aluno, planta, data e PDF), com os que aguardam correção primeiro. O nome do aluno leva à correção. Quando o professor tem mais de uma turma, links no topo permitem trocar de turma. "Copiar Link da Turma" copia o link de convite.
+
+### Detalhe da turma
+
+- **Prazos**: quatro datas em ordem (início e encerramento dos registros, limite de entrega e prazo de correção) e a opção de aceitar entregas atrasadas. A ordem das datas é conferida no front e na API.
+- **Convite**: link e código com botões de copiar. "Gerar novo link" pede confirmação e invalida o anterior.
+- **Alunos**: mostra os 4 primeiros e o botão "Ver os N" para o resto. O status de quem já entregou leva para a correção.
+
+### Detalhe da correção
+
+- Mostra as cinco seções do relatório e as fotos do desenvolvimento. O PDF e as fotos passam pelo front (`/correcoes/<id>/pdf/` e `/correcoes/<id>/fotos/<foto_id>/`), que busca na API com o token do professor; nada fica público.
+- A nota aceita vírgula (`8,5`). "Salvar e marcar como corrigido" exige a nota; "Salvar sem concluir" guarda o que foi escrito e mantém o relatório aguardando correção.
+- "Anterior" e "Próximo" navegam entre os relatórios entregues da mesma turma.
 
 ## Padrões de layout
 
 - As cores ficam como variáveis em `static/css/base.css` (`--verde-900`, `--verde-700`, `--superficie` etc.). Use as variáveis, e não os códigos das cores.
 - A fonte é a Manrope, carregada do Google Fonts no `base.html`.
 - Novas telas de autenticação estendem `auth/base_auth.html` e reaproveitam `auth/_campos.html` para os campos do formulário.
-- Novas telas internas estendem `professor/base_professor.html` e informam a seção ativa do menu na variável `secao` (`painel`, `turmas` ou `correcoes`).
+- Novas telas internas estendem `professor/base_professor.html` e informam a seção ativa do menu na variável `secao` (`painel`, `turmas` ou `correcoes`). A função `_contexto_base` em `professor/views.py` já monta isso e busca o contador de pendentes do menu.
+- Se a API responde 404, a página mostra o 404 do Django (tratado em `professor_obrigatorio`).
 - Os ícones são SVGs em `templates/icones/`, incluídos com `{% include %}`. Eles usam `currentColor`, então herdam a cor do texto.
 - As classes seguem o padrão BEM, por exemplo `form__campo` e `form__campo--erro`.
 - As telas se adaptam a notebooks menores e ao celular.

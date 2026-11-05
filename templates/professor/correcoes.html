@@ -1,0 +1,66 @@
+{% extends "professor/base_professor.html" %}
+{% load static %}
+
+{% block title %}Correções · {{ turma.nome }} · Forrageia{% endblock %}
+
+{% block js %}<script src="{% static 'js/turma.js' %}" defer></script>{% endblock %}
+
+{% block conteudo %}
+<div class="pagina pagina--correcoes">
+  <header class="pagina__cabecalho pagina__cabecalho--grande">
+    <div>
+      <h1 class="pagina__titulo pagina__titulo--grande">{{ turma.nome }}</h1>
+      <p class="pagina__subtitulo">Relatórios submetidos pelos alunos da sua turma.</p>
+      {% if outras_turmas %}
+        <nav class="trocar-turma" aria-label="Outras turmas">
+          <span>Ver outra turma:</span>
+          {% for outra in outras_turmas %}
+            <a href="{% url 'professor:turma_correcoes' outra.id %}">{{ outra.nome }} · {{ outra.periodo }}{% if outra.aguardando_correcao %} ({{ outra.aguardando_correcao }}){% endif %}</a>
+          {% endfor %}
+        </nav>
+      {% endif %}
+    </div>
+    <input type="hidden" id="link-turma" value="{{ turma.link_convite }}">
+    <button type="button" class="botao botao--primario botao--copiar-link" data-copiar="link-turma">Copiar Link da Turma</button>
+  </header>
+
+  <section class="cartao tabela-cartao" aria-label="Relatórios de {{ turma.nome }}">
+    {% if relatorios %}
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th scope="col">Aluno</th>
+            <th scope="col">Planta/ Canteiro</th>
+            <th scope="col">Entregue em</th>
+            <th scope="col">PDF</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for relatorio in relatorios %}
+            <tr>
+              <td class="tabela__aluno">
+                <a href="{% url 'professor:correcao' relatorio.id %}">{{ relatorio.aluno }}</a>
+                {% if relatorio.status == "corrigido" %}<span class="selo selo--corrigido selo--mini">Corrigido</span>{% endif %}
+              </td>
+              <td>{{ relatorio.planta }}</td>
+              <td>{% if relatorio.entregue_em_data %}{{ relatorio.entregue_em_data|date:"d F" }}{% else %}—{% endif %}</td>
+              <td>
+                {% if relatorio.tem_pdf %}
+                  <a class="botao-baixar" href="{% url 'professor:correcao_pdf' relatorio.id %}" aria-label="Baixar PDF de {{ relatorio.aluno }}">{% include "icones/baixar.svg" %}Baixar</a>
+                {% else %}
+                  <span class="botao-baixar botao-baixar--inativo" title="O aluno ainda não gerou o PDF">{% include "icones/baixar.svg" %}Baixar</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="vazio">
+        <p>Nenhum relatório entregue nesta turma ainda.</p>
+        <a class="botao botao--primario botao--pequeno" href="{% url 'professor:turma' turma.id %}#convite">Ver convite da turma</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

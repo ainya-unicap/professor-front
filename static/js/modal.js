@@ -35,8 +35,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-
-  document.querySelectorAll("[aria-disabled=true]").forEach((link) => {
-    link.addEventListener("click", (evento) => evento.preventDefault());
-  });
 });

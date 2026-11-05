@@ -16,11 +16,11 @@
         {% include "icones/home.svg" %}
         <span>Painel</span>
       </a>
-      <a class="menu__item menu__item--em-breve{% if secao == 'turmas' %} menu__item--ativo{% endif %}" href="#" aria-disabled="true" title="Em breve">
+      <a class="menu__item{% if secao == 'turmas' %} menu__item--ativo{% endif %}" href="{% url 'professor:turmas' %}"{% if secao == 'turmas' %} aria-current="page"{% endif %}>
         {% include "icones/pasta.svg" %}
         <span>Turma</span>
       </a>
-      <a class="menu__item menu__item--em-breve{% if secao == 'correcoes' %} menu__item--ativo{% endif %}" href="#" aria-disabled="true" title="Em breve">
+      <a class="menu__item{% if secao == 'correcoes' %} menu__item--ativo{% endif %}" href="{% url 'professor:correcoes' %}"{% if secao == 'correcoes' %} aria-current="page"{% endif %}>
         {% include "icones/prancheta.svg" %}
         <span>Correções</span>
         {% if pendentes %}<span class="menu__contador" aria-label="{{ pendentes }} aguardando correção">{{ pendentes }}</span>{% endif %}

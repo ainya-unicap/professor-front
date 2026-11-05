@@ -1,6 +1,7 @@
-<dialog class="modal" id="modal-nova-turma" aria-labelledby="modal-nova-turma-titulo" data-voltar-para="{% url 'professor:painel' %}"{% if abrir_modal %} data-abrir{% endif %}>
+<dialog class="modal" id="modal-nova-turma" aria-labelledby="modal-nova-turma-titulo" data-voltar-para="{% if origem_modal == 'turmas' %}{% url 'professor:turmas' %}{% else %}{% url 'professor:painel' %}{% endif %}"{% if abrir_modal %} data-abrir{% endif %}>
   <form class="modal__form" method="post" action="{% url 'professor:nova_turma' %}" novalidate>
     {% csrf_token %}
+    {% if origem_modal %}<input type="hidden" name="origem" value="{{ origem_modal }}">{% endif %}
     <h2 class="modal__titulo" id="modal-nova-turma-titulo">Nova Turma</h2>
 
     {% if erro_modal %}
@@ -22,7 +23,7 @@
 
     <div class="modal__acoes">
       <button type="submit" class="botao botao--primario botao--modal">Criar Turma</button>
-      <a class="botao botao--secundario botao--modal" href="{% url 'professor:painel' %}" data-fechar-modal>Cancelar</a>
+      <a class="botao botao--secundario botao--modal" href="{% if origem_modal == 'turmas' %}{% url 'professor:turmas' %}{% else %}{% url 'professor:painel' %}{% endif %}" data-fechar-modal>Cancelar</a>
     </div>
   </form>
 </dialog>

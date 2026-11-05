@@ -1,6 +1,7 @@
 from functools import wraps
 
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import redirect
 
 CHAVE_SESSAO = "auth"
@@ -25,7 +26,7 @@ def encerrar_login(request):
 
 
 def professor_obrigatorio(view):
-    from .api import SessaoExpirada
+    from .api import NaoEncontrado, SessaoExpirada
 
     @wraps(view)
     def wrapper(request, *args, **kwargs):
@@ -39,5 +40,7 @@ def professor_obrigatorio(view):
             encerrar_login(request)
             messages.info(request, erro.mensagem)
             return redirect("core:login")
+        except NaoEncontrado:
+            raise Http404
 
     return wrapper
