@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block css %}<link rel="stylesheet" href="{% static 'css/professor.css' %}">{% endblock %}
+
+{% block body %}
+<div class="app">
+  <aside class="menu">
+    <div class="menu__marca">
+      <span class="menu__nome-app">Forrageia</span>
+      <span class="menu__area">Área do professor</span>
+    </div>
+
+    <nav class="menu__nav" aria-label="Menu principal">
+      <a class="menu__item{% if secao == 'painel' %} menu__item--ativo{% endif %}" href="{% url 'professor:painel' %}"{% if secao == 'painel' %} aria-current="page"{% endif %}>
+        {% include "icones/home.svg" %}
+        <span>Painel</span>
+      </a>
+      <a class="menu__item menu__item--em-breve{% if secao == 'turmas' %} menu__item--ativo{% endif %}" href="#" aria-disabled="true" title="Em breve">
+        {% include "icones/pasta.svg" %}
+        <span>Turma</span>
+      </a>
+      <a class="menu__item menu__item--em-breve{% if secao == 'correcoes' %} menu__item--ativo{% endif %}" href="#" aria-disabled="true" title="Em breve">
+        {% include "icones/prancheta.svg" %}
+        <span>Correções</span>
+        {% if pendentes %}<span class="menu__contador" aria-label="{{ pendentes }} aguardando correção">{{ pendentes }}</span>{% endif %}
+      </a>
+    </nav>
+
+    <div class="menu__usuario">
+      <span class="menu__usuario-nome">{{ usuario.nome }}</span>
+      <span class="menu__usuario-id">{{ usuario.matricula|default:usuario.email }}</span>
+      <form method="post" action="{% url 'core:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="menu__sair">Sair</button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="conteudo">
+    {% if messages %}
+      {% for mensagem in messages %}
+        <div class="aviso aviso--{{ mensagem.tags }}" role="status">{{ mensagem }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block conteudo %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

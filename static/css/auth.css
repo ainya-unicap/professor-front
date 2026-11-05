@@ -114,7 +114,13 @@
   gap: 31px;
 }
 
-.form--compacto .form__acoes {
+.form--compacto .form__alerta--info {
+  border-color: var(--verde-700);
+  background: #e8f1ec;
+  color: var(--verde-900);
+}
+
+.form__acoes {
   margin-top: 34px;
 }
 

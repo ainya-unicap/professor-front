@@ -67,7 +67,7 @@ class TelaLoginTests(TestCase):
     def test_professor_entra_e_vai_para_o_painel(self, autenticar_mock):
         autenticar_mock.return_value = RESPOSTA_PROFESSOR
         resposta = self.enviar()
-        self.assertRedirects(resposta, reverse("professor:painel"))
+        self.assertRedirects(resposta, reverse("professor:painel"), fetch_redirect_response=False)
         self.assertEqual(self.client.session[CHAVE_SESSAO]["usuario"]["nome"], "Maria Lima")
         autenticar_mock.assert_called_once_with("prof@teste.com", "Senha123!x")
 
@@ -76,7 +76,7 @@ class TelaLoginTests(TestCase):
         autenticar_mock.return_value = RESPOSTA_PROFESSOR
         self.enviar()
         resposta = self.client.get(self.url)
-        self.assertRedirects(resposta, reverse("professor:painel"))
+        self.assertRedirects(resposta, reverse("professor:painel"), fetch_redirect_response=False)
 
     @patch("core.views.autenticar")
     def test_logout_encerra_a_sessao(self, autenticar_mock):
@@ -96,20 +96,26 @@ class TelaLoginTests(TestCase):
 
 
 class ClienteAPITests(TestCase):
-    @patch("core.api.requests.post")
+    def test_ignora_proxy_do_sistema(self):
+        from .api import _sessao
+
+        self.assertFalse(_sessao.trust_env)
+
+    @patch("core.api._sessao.request")
     def test_api_fora_do_ar(self, post_mock):
         post_mock.side_effect = requests.ConnectionError()
-        with self.assertRaisesMessage(ErroAPI, "Não foi possível conectar ao servidor"):
-            autenticar("prof@teste.com", "x")
+        with self.assertLogs("core.api", level="WARNING"):
+            with self.assertRaisesMessage(ErroAPI, "Não foi possível conectar ao servidor"):
+                autenticar("prof@teste.com", "x")
 
-    @patch("core.api.requests.post")
+    @patch("core.api._sessao.request")
     def test_api_responde_401(self, post_mock):
         post_mock.return_value.status_code = 401
         post_mock.return_value.ok = False
         with self.assertRaisesMessage(ErroAPI, "E-mail ou senha inválidos."):
             autenticar("prof@teste.com", "x")
 
-    @patch("core.api.requests.post")
+    @patch("core.api._sessao.request")
     def test_api_responde_200(self, post_mock):
         post_mock.return_value.status_code = 200
         post_mock.return_value.ok = True
@@ -154,7 +160,7 @@ class TelaCadastroTests(TestCase):
     def test_cadastro_ok_loga_e_vai_para_o_painel(self, cadastrar_mock):
         cadastrar_mock.return_value = RESPOSTA_PROFESSOR
         resposta = self.client.post(self.url, self.dados)
-        self.assertRedirects(resposta, reverse("professor:painel"))
+        self.assertRedirects(resposta, reverse("professor:painel"), fetch_redirect_response=False)
         self.assertEqual(self.client.session[CHAVE_SESSAO]["usuario"]["nome"], "Maria Lima")
         cadastrar_mock.assert_called_once_with("Maria Lima", "prof@teste.com", "canteiro-forte-2026")
 
@@ -185,7 +191,7 @@ class TelaCadastroTests(TestCase):
 
 
 class ClienteAPICadastroTests(TestCase):
-    @patch("core.api.requests.post")
+    @patch("core.api._sessao.request")
     def test_envia_os_campos_esperados(self, post_mock):
         post_mock.return_value.status_code = 201
         post_mock.return_value.ok = True
@@ -196,7 +202,7 @@ class ClienteAPICadastroTests(TestCase):
             {"nome": "Maria Lima", "email": "prof@teste.com", "password": "x"},
         )
 
-    @patch("core.api.requests.post")
+    @patch("core.api._sessao.request")
     def test_400_vira_erro_de_validacao(self, post_mock):
         post_mock.return_value.status_code = 400
         post_mock.return_value.ok = False
@@ -204,3 +210,56 @@ class ClienteAPICadastroTests(TestCase):
         with self.assertRaises(ErroValidacao) as ctx:
             cadastrar("Maria Lima", "prof@teste.com", "x")
         self.assertEqual(ctx.exception.erros, {"email": ["Já existe uma conta com este e-mail."]})
+
+
+class ChamadaAutenticadaTests(TestCase):
+    def setUp(self):
+        sessao = self.client.session
+        sessao[CHAVE_SESSAO] = dict(RESPOSTA_PROFESSOR)
+        sessao.save()
+
+    def _request(self):
+        from django.test import RequestFactory
+
+        request = RequestFactory().get("/")
+        request.session = self.client.session
+        return request
+
+    @staticmethod
+    def _resposta(status, corpo=None):
+        from unittest.mock import Mock
+
+        resposta = Mock(status_code=status, ok=200 <= status < 300)
+        resposta.json.return_value = corpo or {}
+        return resposta
+
+    @patch("core.api._sessao.request")
+    def test_envia_o_token(self, request_mock):
+        from .api import chamar
+
+        request_mock.return_value = self._resposta(200)
+        chamar(self._request(), "GET", "professor/painel/")
+        self.assertEqual(request_mock.call_args.kwargs["headers"], {"Authorization": "Bearer token-access"})
+
+    @patch("core.api._sessao.request")
+    def test_renova_o_token_expirado_e_repete(self, request_mock):
+        from .api import chamar
+
+        request_mock.side_effect = [
+            self._resposta(401),
+            self._resposta(200, {"access": "token-novo"}),
+            self._resposta(200, {"ok": True}),
+        ]
+        request = self._request()
+        resposta = chamar(request, "GET", "professor/painel/")
+        self.assertEqual(resposta.json(), {"ok": True})
+        self.assertEqual(request.session[CHAVE_SESSAO]["access"], "token-novo")
+        self.assertEqual(request_mock.call_args.kwargs["headers"], {"Authorization": "Bearer token-novo"})
+
+    @patch("core.api._sessao.request")
+    def test_refresh_invalido_encerra_a_sessao(self, request_mock):
+        from .api import SessaoExpirada, chamar
+
+        request_mock.side_effect = [self._resposta(401), self._resposta(401)]
+        with self.assertRaises(SessaoExpirada):
+            chamar(self._request(), "GET", "professor/painel/")
