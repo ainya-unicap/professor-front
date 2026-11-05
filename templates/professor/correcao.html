@@ -1,0 +1,110 @@
+{% extends "professor/base_professor.html" %}
+
+{% block title %}Correção · {{ relatorio.aluno.nome }} · Forrageia{% endblock %}
+
+{% block conteudo %}
+<div class="pagina">
+  <header class="pagina__cabecalho">
+    <div>
+      <nav class="pagina__trilha" aria-label="Você está em">
+        <a href="{% url 'professor:turma_correcoes' relatorio.turma.id %}">Correções</a> / <a href="{% url 'professor:turma' relatorio.turma.id %}">{{ relatorio.turma.nome }}</a>
+      </nav>
+      <h1 class="pagina__titulo">{{ relatorio.turma.nome }} · {{ relatorio.turma.periodo }}</h1>
+    </div>
+    <div class="pagina__acoes">
+      {% if relatorio.status == "corrigido" %}
+        <span class="selo selo--corrigido selo--grande">Corrigido</span>
+      {% else %}
+        <span class="selo selo--pendente selo--grande">Aguardando correção</span>
+      {% endif %}
+      <nav class="navegacao-relatorios" aria-label="Outros relatórios da turma">
+        {% if relatorio.anterior %}
+          <a class="botao-pilula" href="{% url 'professor:correcao' relatorio.anterior %}">Anterior {% include "icones/seta-esquerda.svg" %}</a>
+        {% else %}
+          <span class="botao-pilula botao-pilula--inativo" aria-disabled="true">Anterior {% include "icones/seta-esquerda.svg" %}</span>
+        {% endif %}
+        {% if relatorio.proximo %}
+          <a class="botao-pilula" href="{% url 'professor:correcao' relatorio.proximo %}">Próximo {% include "icones/seta-direita.svg" %}</a>
+        {% else %}
+          <span class="botao-pilula botao-pilula--inativo" aria-disabled="true">Próximo {% include "icones/seta-direita.svg" %}</span>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <div class="pagina__colunas">
+    <article class="cartao cartao--principal relatorio">
+      <header class="cartao__topo">
+        <div>
+          <h2 class="cartao__nome">Relatório de {{ relatorio.aluno.nome }}</h2>
+          <p class="cartao__descricao">{{ relatorio.planta }} · {{ relatorio.turma.nome }} · {{ relatorio.turma.periodo }}</p>
+        </div>
+        {% if relatorio.tem_pdf %}
+          <a class="botao-pilula" href="{% url 'professor:correcao_pdf' relatorio.id %}">Baixar PDF</a>
+        {% else %}
+          <span class="botao-pilula botao-pilula--inativo" title="O aluno ainda não gerou o PDF">Baixar PDF</span>
+        {% endif %}
+      </header>
+
+      {% for secao in secoes %}
+        <section class="relatorio__secao">
+          <h3 class="relatorio__titulo"><span class="numero">{{ secao.numero }}</span>{{ secao.titulo }}</h3>
+          {% if secao.texto %}
+            <div class="relatorio__texto">{{ secao.texto|linebreaks }}</div>
+          {% else %}
+            <p class="relatorio__texto relatorio__texto--vazio">Não preenchido.</p>
+          {% endif %}
+          {% if secao.fotos and relatorio.fotos %}
+            <div class="relatorio__fotos">
+              {% for foto in relatorio.fotos %}
+                <figure class="relatorio__foto">
+                  <img src="{% url 'professor:correcao_foto' relatorio.id foto.id %}" alt="{{ foto.legenda|default:'Foto do canteiro' }}" loading="lazy">
+                  {% if foto.legenda %}<figcaption>{{ foto.legenda }}</figcaption>{% endif %}
+                </figure>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </section>
+      {% endfor %}
+    </article>
+
+    <div class="pagina__lateral">
+      <section class="cartao cartao--lateral avaliacao" aria-labelledby="avaliacao-titulo">
+        <h2 class="cartao__nome" id="avaliacao-titulo">Avaliação</h2>
+
+        <form method="post" action="{% url 'professor:correcao_avaliar' relatorio.id %}" novalidate>
+          {% csrf_token %}
+
+          {% if erro %}
+            <div class="aviso aviso--error" role="alert">{{ erro }}</div>
+          {% endif %}
+
+          {% for campo in form %}
+            <div class="campo campo--avaliacao{% if campo.errors %} campo--erro{% endif %}">
+              <label class="campo__label campo__label--grande" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+              {{ campo }}
+              {% for e in campo.errors %}<p class="campo__erro">{{ e }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+
+          <div class="nota-info">
+            {% include "icones/cadeado.svg" %}
+            <p>Nota e feedback ficam visíveis apenas para {{ relatorio.aluno.nome }}.</p>
+          </div>
+
+          <div class="avaliacao__acoes">
+            <button type="submit" name="acao" value="corrigir" class="botao botao--primario botao--compacto botao--largo">{% if relatorio.status == "corrigido" %}Salvar correção{% else %}Salvar e marcar como corrigido{% endif %}</button>
+            {% if relatorio.status != "corrigido" %}
+              <button type="submit" name="acao" value="rascunho" class="botao botao--contorno botao--compacto botao--largo">Salvar sem concluir</button>
+            {% endif %}
+          </div>
+        </form>
+
+        {% if prazo_correcao %}
+          <p class="avaliacao__prazo">Prazo de correção da turma: {{ prazo_correcao|date:"j b" }}.</p>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

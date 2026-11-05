@@ -1,0 +1,126 @@
+{% extends "professor/base_professor.html" %}
+{% load static %}
+
+{% block title %}{{ turma.nome }} · Forrageia{% endblock %}
+
+{% block js %}<script src="{% static 'js/turma.js' %}" defer></script>{% endblock %}
+
+{% block conteudo %}
+<div class="pagina">
+  <header class="pagina__cabecalho">
+    <div>
+      <nav class="pagina__trilha" aria-label="Você está em">
+        <a href="{% url 'professor:turmas' %}">Turmas</a> / <span>{{ turma.nome }}</span>
+      </nav>
+      <h1 class="pagina__titulo">{{ turma.nome }} · {{ turma.periodo }}</h1>
+    </div>
+    <div class="pagina__acoes">
+      <a class="botao-pilula" href="{% url 'professor:turma_correcoes' turma.id %}">Ver relatórios{% if turma.aguardando_correcao %} ({{ turma.aguardando_correcao }} aguardando){% endif %}</a>
+    </div>
+  </header>
+
+  <div class="pagina__colunas">
+    <section class="cartao cartao--principal" id="prazos" aria-labelledby="prazos-titulo">
+      <header class="cartao__topo">
+        <div>
+          <h2 class="cartao__nome" id="prazos-titulo">Prazos da turma</h2>
+          <p class="cartao__descricao">{{ turma.nome }} · {{ turma.periodo }}{% if turma.instituicao %} · {{ turma.instituicao }}{% endif %}</p>
+        </div>
+      </header>
+
+      <form method="post" action="{% url 'professor:turma_prazos' turma.id %}" novalidate>
+        {% csrf_token %}
+
+        {% if erro %}
+          <div class="aviso aviso--error" role="alert">{{ erro }}</div>
+        {% endif %}
+
+        <ol class="etapas">
+          {% for etapa in form.etapas %}
+            <li class="etapa{% if etapa.campo.errors %} etapa--erro{% endif %}">
+              <div class="etapa__texto">
+                <label class="etapa__titulo" for="{{ etapa.campo.id_for_label }}">
+                  <span class="numero">{{ etapa.numero }}</span>{{ etapa.titulo }}
+                </label>
+                <p class="etapa__descricao">{{ etapa.descricao }}</p>
+                {% for e in etapa.campo.errors %}<p class="campo__erro">{{ e }}</p>{% endfor %}
+              </div>
+              <div class="campo-data">
+                {{ etapa.campo }}
+                {% include "icones/calendario.svg" %}
+              </div>
+            </li>
+          {% endfor %}
+        </ol>
+
+        <div class="etapas__rodape">
+          <label class="caixa-marcacao" for="{{ form.aceitar_atrasadas.id_for_label }}">
+            {{ form.aceitar_atrasadas }}
+            <span>{{ form.aceitar_atrasadas.label }}</span>
+          </label>
+          <button type="submit" class="botao botao--primario botao--compacto">Salvar prazos</button>
+        </div>
+      </form>
+    </section>
+
+    <div class="pagina__lateral">
+      <section class="cartao cartao--lateral" id="convite" aria-labelledby="convite-titulo">
+        <h2 class="cartao__nome" id="convite-titulo">Convite da turma</h2>
+
+        <div class="campo campo--lateral">
+          <label class="campo__label" for="link-convite">Link</label>
+          <input type="text" id="link-convite" value="{{ turma.link_convite }}" readonly>
+        </div>
+
+        <div class="campo campo--lateral">
+          <label class="campo__label" for="codigo-convite">Código</label>
+          <input type="text" id="codigo-convite" class="codigo-convite" value="{{ turma.codigo_convite }}" readonly>
+        </div>
+
+        <div class="botoes-lado-a-lado">
+          <button type="button" class="botao botao--primario botao--compacto" data-copiar="link-convite">Copiar link</button>
+          <button type="button" class="botao botao--contorno botao--compacto" data-copiar="codigo-convite">Copiar código</button>
+        </div>
+
+        <div class="nota-info">
+          {% include "icones/relogio.svg" %}
+          <p>Ao gerar um novo link, o anterior deixa de funcionar.</p>
+        </div>
+
+        <div class="convite__rodape">
+          <span>{{ turma.alunos }} {% if turma.alunos == 1 %}aluno já entrou{% else %}alunos já entraram{% endif %}</span>
+          <form method="post" action="{% url 'professor:turma_novo_codigo' turma.id %}" data-confirmar="Gerar um novo link? O link e o código atuais deixam de funcionar.">
+            {% csrf_token %}
+            <button type="submit" class="link-botao">Gerar novo link</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="cartao cartao--lateral" aria-labelledby="alunos-titulo">
+        <header class="cartao__cabecalho cartao__cabecalho--alunos">
+          <h2 class="cartao__subnome" id="alunos-titulo">Alunos</h2>
+          {% if tem_ocultos %}
+            <button type="button" class="link-botao link-botao--cinza" data-mostrar-todos="lista-alunos" data-texto-menos="Ver menos">Ver os {{ alunos|length }}</button>
+          {% endif %}
+        </header>
+        {% if alunos %}
+          <ul class="lista lista--alunos" id="lista-alunos">
+            {% for aluno in alunos %}
+              <li class="lista__item aluno"{% if aluno.oculto %} hidden{% endif %}>
+                <span class="lista__titulo">{{ aluno.nome }}</span>
+                {% if aluno.relatorio_id %}
+                  <a class="selo selo--{{ aluno.status_classe }}" href="{% url 'professor:correcao' aluno.relatorio_id %}">{{ aluno.status_rotulo }}</a>
+                {% else %}
+                  <span class="selo selo--{{ aluno.status_classe }}">{{ aluno.status_rotulo }}</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="vazio vazio--compacto">Nenhum aluno entrou ainda. Compartilhe o convite acima.</p>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

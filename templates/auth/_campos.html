@@ -1,0 +1,7 @@
+{% for campo in form %}
+  <div class="form__campo{% if campo.errors %} form__campo--erro{% endif %}">
+    <label class="form__label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+    {{ campo }}
+    {% for e in campo.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
+  </div>
+{% endfor %}

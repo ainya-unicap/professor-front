@@ -44,6 +44,10 @@
   letter-spacing: -0.02em;
 }
 
+.auth__titulo-lateral--estreito {
+  max-width: 433px;
+}
+
 .auth__beneficios {
   display: flex;
   flex-direction: column;
@@ -80,6 +84,10 @@
   margin-bottom: 129px;
 }
 
+.auth__cabecalho--compacto {
+  margin-bottom: 45px;
+}
+
 .auth__titulo {
   font-size: 45px;
   font-weight: 800;
@@ -100,6 +108,20 @@
   flex-direction: column;
   gap: 35px;
   max-width: 647px;
+}
+
+.form--compacto {
+  gap: 31px;
+}
+
+.form--compacto .form__alerta--info {
+  border-color: var(--verde-700);
+  background: #e8f1ec;
+  color: var(--verde-900);
+}
+
+.form__acoes {
+  margin-top: 34px;
 }
 
 .form__campo {
@@ -203,6 +225,10 @@
   .auth__cabecalho {
     margin-bottom: 72px;
   }
+
+  .auth__cabecalho--compacto {
+    margin-bottom: 36px;
+  }
 }
 
 @media (max-width: 800px) {
@@ -234,6 +260,14 @@
 
   .auth__cabecalho {
     margin-bottom: 48px;
+  }
+
+  .auth__cabecalho--compacto {
+    margin-bottom: 28px;
+  }
+
+  .form--compacto {
+    gap: 20px;
   }
 
   .form__campo input {

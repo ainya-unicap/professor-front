@@ -1,0 +1,29 @@
+{% extends "auth/base_auth.html" %}
+
+{% block title %}Criar conta · Forrageia{% endblock %}
+
+{% block chamada_classe %} auth__titulo-lateral--estreito{% endblock %}
+
+{% block chamada %}Crie sua conta e comece o semestre.{% endblock %}
+
+{% block conteudo %}
+<header class="auth__cabecalho auth__cabecalho--compacto">
+  <h1 class="auth__titulo">Criar conta</h1>
+  <p class="auth__subtitulo">Leva menos de um minuto.</p>
+</header>
+
+<form class="form form--compacto" method="post" novalidate>
+  {% csrf_token %}
+
+  {% if erro %}
+    <div class="form__alerta" role="alert">{{ erro }}</div>
+  {% endif %}
+
+  {% include "auth/_campos.html" %}
+
+  <div class="form__acoes">
+    <button type="submit" class="botao botao--primario">Criar conta</button>
+    <p class="form__alternativa">Já tem conta? <a href="{% url 'core:login' %}">Entrar</a></p>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,29 @@
+<dialog class="modal" id="modal-nova-turma" aria-labelledby="modal-nova-turma-titulo" data-voltar-para="{% if origem_modal == 'turmas' %}{% url 'professor:turmas' %}{% else %}{% url 'professor:painel' %}{% endif %}"{% if abrir_modal %} data-abrir{% endif %}>
+  <form class="modal__form" method="post" action="{% url 'professor:nova_turma' %}" novalidate>
+    {% csrf_token %}
+    {% if origem_modal %}<input type="hidden" name="origem" value="{{ origem_modal }}">{% endif %}
+    <h2 class="modal__titulo" id="modal-nova-turma-titulo">Nova Turma</h2>
+
+    {% if erro_modal %}
+      <div class="aviso aviso--error" role="alert">{{ erro_modal }}</div>
+    {% endif %}
+
+    {% for campo in form %}
+      <div class="campo{% if campo.errors %} campo--erro{% endif %}">
+        <label class="campo__label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+        {{ campo }}
+        {% for e in campo.errors %}<p class="campo__erro">{{ e }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+
+    <div class="modal__info">
+      {% include "icones/clipe.svg" %}
+      <p>Ao criar, geramos um link e um código para você compartilhar com os alunos onde preferir para que sejam vinculados à sala criada.</p>
+    </div>
+
+    <div class="modal__acoes">
+      <button type="submit" class="botao botao--primario botao--modal">Criar Turma</button>
+      <a class="botao botao--secundario botao--modal" href="{% if origem_modal == 'turmas' %}{% url 'professor:turmas' %}{% else %}{% url 'professor:painel' %}{% endif %}" data-fechar-modal>Cancelar</a>
+    </div>
+  </form>
+</dialog>
