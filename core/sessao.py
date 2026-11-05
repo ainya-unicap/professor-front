@@ -1,5 +1,6 @@
 from functools import wraps
 
+from django.contrib import messages
 from django.shortcuts import redirect
 
 CHAVE_SESSAO = "auth"
@@ -24,12 +25,19 @@ def encerrar_login(request):
 
 
 def professor_obrigatorio(view):
+    from .api import SessaoExpirada
+
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         usuario = usuario_logado(request)
         if not usuario or usuario.get("papel") != "professor":
             return redirect("core:login")
         request.usuario = usuario
-        return view(request, *args, **kwargs)
+        try:
+            return view(request, *args, **kwargs)
+        except SessaoExpirada as erro:
+            encerrar_login(request)
+            messages.info(request, erro.mensagem)
+            return redirect("core:login")
 
     return wrapper

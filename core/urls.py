@@ -8,5 +8,6 @@ app_name = "core"
 urlpatterns = [
     path("", RedirectView.as_view(pattern_name="core:login", permanent=False)),
     path("login/", views.login_view, name="login"),
+    path("cadastro/", views.cadastro_view, name="cadastro"),
     path("logout/", views.logout_view, name="logout"),
 ]

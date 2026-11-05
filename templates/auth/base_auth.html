@@ -12,7 +12,7 @@
     </div>
 
     <div class="auth__chamada">
-      <h2 class="auth__titulo-lateral">{% block chamada %}{% endblock %}</h2>
+      <h2 class="auth__titulo-lateral{% block chamada_classe %}{% endblock %}">{% block chamada %}{% endblock %}</h2>
       <ul class="auth__beneficios">
         <li><img src="{% static 'img/icon-check.svg' %}" alt="" width="31" height="26">Crie turmas e compartilhe um link com os alunos</li>
         <li><img src="{% static 'img/icon-check.svg' %}" alt="" width="31" height="26">Veja quem já entregou o relatório</li>

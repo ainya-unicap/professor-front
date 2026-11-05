@@ -1,13 +1,129 @@
-{% extends "base/base.html" %}
+{% extends "professor/base_professor.html" %}
+{% load static %}
 
 {% block title %}Painel · Forrageia{% endblock %}
 
-{% block body %}
-<main style="padding: 48px">
-  <h1>Olá, {{ usuario.nome }}</h1>
-  <form method="post" action="{% url 'core:logout' %}">
-    {% csrf_token %}
-    <button type="submit" class="botao botao--primario">Sair</button>
-  </form>
-</main>
+{% block js %}<script src="{% static 'js/modal.js' %}" defer></script>{% endblock %}
+
+{% block conteudo %}
+<section class="destaque">
+  <div class="destaque__texto">
+    {% if painel.periodo_atual %}
+      <p class="destaque__contexto">{{ painel.periodo_atual }}{% if painel.instituicao %} · {{ painel.instituicao }}{% endif %}</p>
+    {% endif %}
+    <h1 class="destaque__titulo">Olá, {{ primeiro_nome }}</h1>
+    {% if painel %}
+      <p class="destaque__resumo">
+        {% if painel.turmas or painel.pendentes %}
+          {{ painel.resumo_pendentes }}{% if painel.prazo %} · prazo de avaliação até {{ painel.prazo|date:"j F"|lower }}{% endif %}.
+        {% else %}
+          Crie sua primeira turma para começar o semestre.
+        {% endif %}
+      </p>
+    {% endif %}
+  </div>
+  <div class="destaque__acoes">
+    <a class="botao-claro" href="{% url 'professor:nova_turma' %}" data-abrir-modal="modal-nova-turma">Nova Turma</a>
+    <a class="botao-escuro botao--em-breve" href="#" aria-disabled="true" title="Em breve">Definir prazos</a>
+  </div>
+</section>
+
+{% if erro %}
+  <div class="aviso aviso--error" role="alert">{{ erro }}</div>
+{% endif %}
+
+{% if painel %}
+<section class="indicadores" aria-label="Resumo do semestre">
+  <article class="indicador">
+    <h2 class="indicador__rotulo">Aguardando correção</h2>
+    <p class="indicador__valor">{{ painel.pendentes }}</p>
+    <p class="indicador__legenda">{{ painel.turmas_pendentes_legenda }}</p>
+  </article>
+  <article class="indicador">
+    <h2 class="indicador__rotulo">Turmas ativas</h2>
+    <p class="indicador__valor">{{ painel.turmas_ativas }}</p>
+    <p class="indicador__legenda">{% if painel.periodo_atual %}Período {{ painel.periodo_atual }}{% else %}Nenhuma turma{% endif %}</p>
+  </article>
+  <article class="indicador">
+    <h2 class="indicador__rotulo">Alunos</h2>
+    <p class="indicador__valor">{{ painel.alunos }}</p>
+    <p class="indicador__legenda">Matriculados</p>
+  </article>
+  <article class="indicador">
+    <h2 class="indicador__rotulo">Prazo de avaliação</h2>
+    {% with prazo_texto=painel.prazo|date:"j F"|lower %}
+      <p class="indicador__valor{% if prazo_texto|length > 8 %} indicador__valor--longo{% endif %}">{% if painel.prazo %}{{ prazo_texto }}{% else %}—{% endif %}</p>
+    {% endwith %}
+    <p class="indicador__legenda">{{ painel.prazo_legenda }}</p>
+  </article>
+</section>
+
+<section class="paineis">
+  <article class="cartao cartao--turmas">
+    <header class="cartao__cabecalho">
+      <h2 class="cartao__titulo">Minhas Turmas</h2>
+      <a class="cartao__link botao--em-breve" href="#" aria-disabled="true" title="Em breve">Ver todas</a>
+    </header>
+    {% if painel.turmas %}
+      <ul class="lista">
+        {% for turma in painel.turmas %}
+          <li class="lista__item turma-resumo">
+            <div>
+              <p class="lista__titulo">{{ turma.nome }} · {{ turma.periodo }}</p>
+              <p class="lista__detalhe">{{ turma.alunos_legenda }} · {{ turma.instituicao }}</p>
+            </div>
+            <div class="progresso">
+              <div class="progresso__trilha" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ turma.progresso }}" aria-label="Relatórios entregues em {{ turma.nome }}">
+                <div class="progresso__barra" style="width: {{ turma.progresso }}%"></div>
+              </div>
+              <p class="progresso__legenda">{{ turma.entregues_legenda }}</p>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="vazio">
+        <p>Você ainda não tem turmas.</p>
+        <a class="botao botao--primario botao--pequeno" href="{% url 'professor:nova_turma' %}" data-abrir-modal="modal-nova-turma">Criar turma</a>
+      </div>
+    {% endif %}
+  </article>
+
+  <article class="cartao cartao--pendentes">
+    <header class="cartao__cabecalho">
+      <h2 class="cartao__titulo">Aguardando correção</h2>
+      <a class="cartao__link botao--em-breve" href="#" aria-disabled="true" title="Em breve">Abrir caixa de entrada</a>
+    </header>
+    {% if painel.aguardando %}
+      <ul class="lista">
+        {% for relatorio in painel.aguardando %}
+          <li class="lista__item">
+            <p class="lista__titulo">{{ relatorio.aluno }}</p>
+            <p class="lista__detalhe">{{ relatorio.planta }} · {{ relatorio.turma }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="vazio"><p>Nenhum relatório aguardando correção.</p></div>
+    {% endif %}
+  </article>
+</section>
+
+<section class="atalhos" aria-label="Atalhos">
+  <a class="atalho botao--em-breve" href="#" aria-disabled="true" title="Em breve">
+    <span class="atalho__titulo">Checklists de manejo</span>
+    <span class="atalho__detalhe">Por planta ou por turma</span>
+  </a>
+  <a class="atalho botao--em-breve" href="#" aria-disabled="true" title="Em breve">
+    <span class="atalho__titulo">Convidar alunos</span>
+    <span class="atalho__detalhe">Link e código de cada turma</span>
+  </a>
+  <a class="atalho botao--em-breve" href="#" aria-disabled="true" title="Em breve">
+    <span class="atalho__titulo">Semestres anteriores</span>
+    <span class="atalho__detalhe">Consultar e comparar históricos</span>
+  </a>
+</section>
+{% endif %}
+
+{% include "professor/_modal_nova_turma.html" %}
 {% endblock %}

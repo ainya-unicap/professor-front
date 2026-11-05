@@ -13,21 +13,19 @@
 <form class="form" method="post" novalidate>
   {% csrf_token %}
 
+  {% for mensagem in messages %}
+    <div class="form__alerta form__alerta--info" role="status">{{ mensagem }}</div>
+  {% endfor %}
+
   {% if erro %}
     <div class="form__alerta" role="alert">{{ erro }}</div>
   {% endif %}
 
-  {% for campo in form %}
-    <div class="form__campo{% if campo.errors %} form__campo--erro{% endif %}">
-      <label class="form__label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
-      {{ campo }}
-      {% for e in campo.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
-    </div>
-  {% endfor %}
+  {% include "auth/_campos.html" %}
 
   <div class="form__acoes">
     <button type="submit" class="botao botao--primario">Entrar</button>
-    <p class="form__alternativa">Ainda não tem conta? <a href="/cadastro/">Cadastrar</a></p>
+    <p class="form__alternativa">Ainda não tem conta? <a href="{% url 'core:cadastro' %}">Cadastrar</a></p>
   </div>
 </form>
 {% endblock %}
