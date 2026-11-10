@@ -32,6 +32,7 @@
           </div>
           <p class="turma-linha__legenda">{{ turma.entregues_legenda }}</p>
         </div>
+        <a class="botao-pilula" href="{% url 'professor:turma' turma.id %}" aria-label="Abrir {{ turma.nome }}">Abrir</a>
       </li>
     {% endfor %}
   </ul>

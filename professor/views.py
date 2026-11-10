@@ -1,8 +1,19 @@
+from datetime import datetime
+
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
-from core.api import ErroAPI, ErroValidacao, criar_turma, listar_turmas
+from core.api import (
+    ErroAPI,
+    ErroValidacao,
+    baixar_pdf_do_relatorio,
+    buscar_turma,
+    criar_turma,
+    listar_relatorios_da_turma,
+    listar_turmas,
+)
 from core.sessao import professor_obrigatorio
 
 from .apresentacao import preparar_turmas
@@ -80,3 +91,37 @@ def nova_turma(request):
             return redirect("professor:turmas")
 
     return _render_turmas(request, form=form, abrir_modal=True, erro_modal=erro_modal)
+
+
+@professor_obrigatorio
+@require_GET
+def turma(request, turma_id):
+    turma = buscar_turma(request, turma_id)
+    relatorios = []
+    erro = None
+    try:
+        relatorios = [
+            {
+                **relatorio,
+                "entregue_em": datetime.fromisoformat(relatorio["entregue_em"]) if relatorio["entregue_em"] else None,
+            }
+            for relatorio in listar_relatorios_da_turma(request, turma_id)
+        ]
+    except ErroAPI as e:
+        if e.status in (401, 404):
+            raise
+        erro = e.mensagem
+
+    contexto = _contexto_base(request, "turmas")
+    contexto.update({"turma": turma, "relatorios": relatorios, "erro": erro})
+    return render(request, "professor/turma.html", contexto)
+
+
+@professor_obrigatorio
+@require_GET
+def relatorio_pdf(request, relatorio_id):
+    resposta = baixar_pdf_do_relatorio(request, relatorio_id)
+    saida = HttpResponse(resposta.content, content_type="application/pdf")
+    saida["Content-Disposition"] = resposta.headers.get("Content-Disposition", "attachment")
+    saida["Cache-Control"] = "private, no-store"
+    return saida

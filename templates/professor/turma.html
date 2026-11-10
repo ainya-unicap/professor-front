@@ -1,0 +1,55 @@
+{% extends "professor/base_professor.html" %}
+{% load static %}
+
+{% block title %}{{ turma.nome }} · Forrageia{% endblock %}
+
+{% block js %}<script src="{% static 'js/copiar.js' %}" defer></script>{% endblock %}
+
+{% block conteudo %}
+<header class="pagina__cabecalho">
+  <div>
+    <h1 class="pagina__titulo">{{ turma.nome }}</h1>
+    <p class="pagina__subtitulo">Relatórios submetidos pelos alunos da sua turma.</p>
+  </div>
+  <input type="hidden" id="link-turma" value="{{ turma.link_convite }}">
+  <button type="button" class="botao botao--primario botao--copiar-link" data-copiar="link-turma">Copiar Link da Turma</button>
+</header>
+
+<section class="cartao tabela-cartao" aria-label="Relatórios de {{ turma.nome }}">
+  {% if erro %}
+    <div class="vazio"><p>{{ erro }}</p></div>
+  {% elif relatorios %}
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th scope="col">Aluno</th>
+          <th scope="col">Planta/ Canteiro</th>
+          <th scope="col">Entregue em</th>
+          <th scope="col">PDF</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for relatorio in relatorios %}
+          <tr>
+            <td class="tabela__aluno">{{ relatorio.aluno }}</td>
+            <td>{{ relatorio.planta }}</td>
+            <td>{% if relatorio.entregue_em %}{{ relatorio.entregue_em|date:"d F" }}{% else %}—{% endif %}</td>
+            <td>
+              {% if relatorio.tem_pdf %}
+                <a class="botao-baixar" href="{% url 'professor:relatorio_pdf' relatorio.id %}" aria-label="Baixar PDF de {{ relatorio.aluno }}">{% include "icones/baixar.svg" %}Baixar</a>
+              {% else %}
+                <span class="botao-baixar botao-baixar--inativo" title="O aluno ainda não gerou o PDF">{% include "icones/baixar.svg" %}Baixar</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="vazio">
+      <p>Nenhum relatório entregue nesta turma ainda.</p>
+      <p>Compartilhe o link da turma com os alunos para que eles entrem.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -118,3 +118,18 @@ def criar_turma(request, nome, periodo, instituicao):
         {"nome": nome, "periodo": periodo, "instituicao": instituicao},
     )
     return _verificar(resposta, "Não foi possível criar a turma agora. Tente novamente.").json()
+
+
+def buscar_turma(request, turma_id):
+    resposta = chamar(request, "GET", f"turmas/{turma_id}/")
+    return _verificar(resposta, "Não foi possível carregar a turma agora.").json()
+
+
+def listar_relatorios_da_turma(request, turma_id):
+    resposta = chamar(request, "GET", f"turmas/{turma_id}/relatorios/")
+    return _verificar(resposta, "Não foi possível carregar os relatórios agora.").json()
+
+
+def baixar_pdf_do_relatorio(request, relatorio_id):
+    resposta = chamar(request, "GET", f"relatorios/{relatorio_id}/pdf/")
+    return _verificar(resposta, "Não foi possível baixar o PDF agora.")

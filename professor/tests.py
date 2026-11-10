@@ -133,3 +133,72 @@ class NovaTurmaTests(Logado):
         resposta = self.client.post(self.url, self.dados)
         self.assertContains(resposta, "Não foi possível conectar ao servidor")
         self.assertContains(resposta, "data-abrir")
+
+
+RELATORIOS = [
+    {"id": 101, "aluno": "Pedro Sá", "planta": "Camelo", "entregue_em": "2026-06-09T13:00:00Z", "tem_pdf": True},
+    {"id": 102, "aluno": "Ana Souza", "planta": "Amendoim Forrageiro", "entregue_em": "2026-06-08T13:00:00Z", "tem_pdf": False},
+]
+
+
+class TurmaTests(Logado):
+    url = reverse("professor:turma", args=[1])
+
+    @patch("professor.views.listar_turmas", return_value=LISTA_TURMAS)
+    def test_lista_tem_botao_abrir(self, _):
+        resposta = self.client.get(reverse("professor:turmas"))
+        self.assertContains(resposta, f'href="{self.url}"')
+
+    @patch("professor.views.listar_relatorios_da_turma", return_value=RELATORIOS)
+    @patch("professor.views.buscar_turma", return_value=TURMA)
+    def test_tabela_de_relatorios(self, _, __):
+        resposta = self.client.get(self.url)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertTemplateUsed(resposta, "professor/turma.html")
+        for texto in (
+            "Turma A",
+            "Relatórios submetidos pelos alunos da sua turma.",
+            "Copiar Link da Turma",
+            'value="https://alunos.exemplo/convite/K7MPQ3"',
+            "Pedro Sá",
+            "Amendoim Forrageiro",
+            "09 Junho",
+            "08 Junho",
+            reverse("professor:relatorio_pdf", args=[101]),
+            "botao-baixar--inativo",
+        ):
+            self.assertContains(resposta, texto)
+        self.assertContains(resposta, "menu__item menu__item--ativo", count=1)
+
+    @patch("professor.views.listar_relatorios_da_turma", return_value=[])
+    @patch("professor.views.buscar_turma", return_value=TURMA)
+    def test_sem_relatorios(self, _, __):
+        self.assertContains(self.client.get(self.url), "Nenhum relatório entregue nesta turma ainda.")
+
+    @patch("professor.views.buscar_turma")
+    def test_turma_inexistente_da_404(self, buscar_mock):
+        from core.api import NaoEncontrado
+
+        buscar_mock.side_effect = NaoEncontrado()
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    @patch("professor.views.baixar_pdf_do_relatorio")
+    def test_repassa_o_pdf(self, baixar_mock):
+        from unittest.mock import Mock
+
+        baixar_mock.return_value = Mock(
+            content=b"%PDF",
+            headers={"Content-Type": "application/pdf", "Content-Disposition": 'attachment; filename="relatorio-pedro-sa.pdf"'},
+        )
+        resposta = self.client.get(reverse("professor:relatorio_pdf", args=[101]))
+        self.assertEqual(resposta.content, b"%PDF")
+        self.assertEqual(resposta["Content-Type"], "application/pdf")
+        self.assertIn('filename="relatorio-pedro-sa.pdf"', resposta["Content-Disposition"])
+        self.assertEqual(baixar_mock.call_args.args[1], 101)
+
+    @patch("professor.views.baixar_pdf_do_relatorio")
+    def test_pdf_inexistente_da_404(self, baixar_mock):
+        from core.api import NaoEncontrado
+
+        baixar_mock.side_effect = NaoEncontrado()
+        self.assertEqual(self.client.get(reverse("professor:relatorio_pdf", args=[101])).status_code, 404)
