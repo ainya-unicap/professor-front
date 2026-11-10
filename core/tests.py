@@ -96,20 +96,26 @@ class TelaLoginTests(TestCase):
 
 
 class ClienteAPITests(TestCase):
-    @patch("core.api.requests.post")
+    def test_ignora_proxy_do_sistema(self):
+        from .api import _sessao
+
+        self.assertFalse(_sessao.trust_env)
+
+    @patch("core.api._sessao.request")
     def test_api_fora_do_ar(self, post_mock):
         post_mock.side_effect = requests.ConnectionError()
-        with self.assertRaisesMessage(ErroAPI, "Não foi possível conectar ao servidor"):
-            autenticar("prof@teste.com", "x")
+        with self.assertLogs("core.api", level="WARNING"):
+            with self.assertRaisesMessage(ErroAPI, "Não foi possível conectar ao servidor"):
+                autenticar("prof@teste.com", "x")
 
-    @patch("core.api.requests.post")
+    @patch("core.api._sessao.request")
     def test_api_responde_401(self, post_mock):
         post_mock.return_value.status_code = 401
         post_mock.return_value.ok = False
         with self.assertRaisesMessage(ErroAPI, "E-mail ou senha inválidos."):
             autenticar("prof@teste.com", "x")
 
-    @patch("core.api.requests.post")
+    @patch("core.api._sessao.request")
     def test_api_responde_200(self, post_mock):
         post_mock.return_value.status_code = 200
         post_mock.return_value.ok = True
@@ -185,7 +191,7 @@ class TelaCadastroTests(TestCase):
 
 
 class ClienteAPICadastroTests(TestCase):
-    @patch("core.api.requests.post")
+    @patch("core.api._sessao.request")
     def test_envia_os_campos_esperados(self, post_mock):
         post_mock.return_value.status_code = 201
         post_mock.return_value.ok = True
@@ -196,7 +202,7 @@ class ClienteAPICadastroTests(TestCase):
             {"nome": "Maria Lima", "email": "prof@teste.com", "password": "x"},
         )
 
-    @patch("core.api.requests.post")
+    @patch("core.api._sessao.request")
     def test_400_vira_erro_de_validacao(self, post_mock):
         post_mock.return_value.status_code = 400
         post_mock.return_value.ok = False

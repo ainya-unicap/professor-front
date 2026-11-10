@@ -1,5 +1,12 @@
+import logging
+
 import requests
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+_sessao = requests.Session()
+_sessao.trust_env = False
 
 
 class ErroAPI(Exception):
@@ -19,11 +26,18 @@ def _url(caminho):
     return f"{settings.API_BASE_URL.rstrip('/')}/{caminho.lstrip('/')}"
 
 
-def _post(caminho, dados):
+def _requisicao(metodo, caminho, dados=None, token=None):
+    url = _url(caminho)
+    cabecalhos = {"Authorization": f"Bearer {token}"} if token else {}
     try:
-        return requests.post(_url(caminho), json=dados, timeout=10)
-    except requests.RequestException:
+        return _sessao.request(metodo, url, json=dados, headers=cabecalhos, timeout=10)
+    except requests.RequestException as erro:
+        logger.warning("Falha ao chamar a API em %s: %r", url, erro)
         raise ErroAPI("Não foi possível conectar ao servidor. Tente novamente.")
+
+
+def _post(caminho, dados):
+    return _requisicao("POST", caminho, dados)
 
 
 def autenticar(email, senha):
