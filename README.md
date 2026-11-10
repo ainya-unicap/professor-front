@@ -13,15 +13,22 @@ core/                login, cadastro, sessão e cliente da API
   forms.py           formulários e validações das telas
   sessao.py          como o login fica guardado na sessão e quais páginas exigem login
   views.py           telas de login, cadastro e logout
-professor/           telas da área do professor (painel, turmas, correções)
+professor/           telas da área do professor
+  forms.py           formulário de nova turma
+  apresentacao.py    textos e progresso de cada turma a partir da resposta da API
+  views.py           turmas, criação de turma, relatórios da turma e PDF
 templates/
   base/              estrutura HTML comum a todas as páginas
   auth/              login e cadastro (base_auth.html é o layout com o painel verde)
-  professor/         telas internas
+  professor/         telas internas (base_professor.html é o layout com o menu lateral)
+  icones/            ícones SVG incluídos direto no HTML
 static/
   css/base.css       cores, fonte e botões usados em todo o projeto
   css/auth.css       layout das telas de login e cadastro
-  img/               ícones
+  css/professor.css  menu lateral, lista de turmas, modal e tabela de relatórios
+  js/modal.js        abre e fecha o modal de nova turma
+  js/copiar.js       copia o link da turma
+  img/               imagens
 ```
 
 ## Como funciona
@@ -40,6 +47,8 @@ Navegador  →  frontend (Django)  →  API do backend
 - Só usuários com papel `professor` entram na área do professor. Uma conta de aluno vê a mensagem "Este acesso é exclusivo para professores."
 - Para exigir login numa view, use o decorator `professor_obrigatorio` de `core/sessao.py`. Ele também coloca os dados do usuário em `request.usuario`.
 - O logout é um `POST` em `/logout/` e apaga a sessão.
+- Chamadas que exigem login passam por `chamar()` em `core/api.py`, que envia o token. Se o token expirou, ela pede um novo à API usando o `refresh` e repete a chamada. Se não conseguir, o usuário volta para o login com o aviso "Sua sessão expirou".
+- As chamadas ignoram o proxy configurado no sistema, porque o front fala direto com a API.
 
 ## Telas
 
@@ -47,15 +56,32 @@ Navegador  →  frontend (Django)  →  API do backend
 |---|---|---|
 | `/login/` | Fazer login | Pronta |
 | `/cadastro/` | Criar conta | Pronta |
-| `/painel/` | Painel do professor | Provisória: só mostra o nome e o botão Sair |
+| `/turmas/` | Turmas | Pronta |
+| `/turmas/nova/` | Modal Nova Turma | Pronta |
+| `/turmas/<id>/` | Relatórios entregues da turma | Pronta |
 
-A rota `/` redireciona para `/login/`. Quem já está logado e abre o login ou o cadastro vai direto para o painel.
+A rota `/` redireciona para `/login/`. Depois de entrar, o professor vai para a lista de turmas. Quem já está logado e abre o login ou o cadastro também vai direto para lá.
+
+### Turmas
+
+- Lista as turmas do professor com o número de alunos, o progresso de relatórios entregues e o botão **Abrir**.
+- **Nova Turma** abre um modal (`<dialog>`) por cima da lista. O formulário envia para `/turmas/nova/`. Se houver erro, a lista é exibida de novo com o modal aberto e as mensagens nos campos. Se der certo, volta para a lista com um aviso mostrando o código de convite.
+- Sem JavaScript, o botão leva para `/turmas/nova/`, que mostra a lista com o modal já aberto.
+
+### Relatórios da turma
+
+- Tabela com os relatórios entregues: aluno, planta/canteiro, data de entrega e o botão **Baixar**.
+- O PDF passa pelo front (`/relatorios/<id>/pdf/`), que busca o arquivo na API com o token do professor; o arquivo não fica público. Quando o aluno ainda não gerou o PDF, o botão aparece desativado.
+- **Copiar Link da Turma** copia o link de convite que a API devolve para a turma.
 
 ## Padrões de layout
 
 - As cores ficam como variáveis em `static/css/base.css` (`--verde-900`, `--verde-700`, `--superficie` etc.). Use as variáveis, e não os códigos das cores.
 - A fonte é a Manrope, carregada do Google Fonts no `base.html`.
 - Novas telas de autenticação estendem `auth/base_auth.html` e reaproveitam `auth/_campos.html` para os campos do formulário.
+- Novas telas internas estendem `professor/base_professor.html` e informam o item ativo do menu na variável `secao`.
+- Os ícones são SVGs em `templates/icones/`, incluídos com `{% include %}`. Eles usam `currentColor`, então herdam a cor do texto.
+- Se a API responde 404, a página mostra o 404 do Django (tratado em `professor_obrigatorio`).
 - As classes seguem o padrão BEM, por exemplo `form__campo` e `form__campo--erro`.
 - As telas se adaptam a notebooks menores e ao celular.
 
