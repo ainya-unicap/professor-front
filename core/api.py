@@ -3,6 +3,8 @@ import logging
 import requests
 from django.conf import settings
 
+from .sessao import CHAVE_SESSAO
+
 logger = logging.getLogger(__name__)
 
 _sessao = requests.Session()
@@ -22,6 +24,16 @@ class ErroValidacao(ErroAPI):
         self.erros = erros
 
 
+class SessaoExpirada(ErroAPI):
+    def __init__(self):
+        super().__init__("Sua sessão expirou. Entre novamente.", status=401)
+
+
+class NaoEncontrado(ErroAPI):
+    def __init__(self):
+        super().__init__("Não encontrado.", status=404)
+
+
 def _url(caminho):
     return f"{settings.API_BASE_URL.rstrip('/')}/{caminho.lstrip('/')}"
 
@@ -38,6 +50,41 @@ def _requisicao(metodo, caminho, dados=None, token=None):
 
 def _post(caminho, dados):
     return _requisicao("POST", caminho, dados)
+
+
+def _renovar_token(refresh):
+    resposta = _requisicao("POST", "auth/token/refresh/", {"refresh": refresh})
+    if resposta.status_code != 200:
+        return None
+    return resposta.json().get("access")
+
+
+def chamar(request, metodo, caminho, dados=None):
+    auth = request.session.get(CHAVE_SESSAO)
+    if not auth:
+        raise SessaoExpirada()
+
+    resposta = _requisicao(metodo, caminho, dados, token=auth["access"])
+    if resposta.status_code == 401:
+        novo_access = _renovar_token(auth["refresh"])
+        if not novo_access:
+            raise SessaoExpirada()
+        auth["access"] = novo_access
+        request.session[CHAVE_SESSAO] = auth
+        resposta = _requisicao(metodo, caminho, dados, token=novo_access)
+        if resposta.status_code == 401:
+            raise SessaoExpirada()
+    return resposta
+
+
+def _verificar(resposta, mensagem):
+    if resposta.status_code == 404:
+        raise NaoEncontrado()
+    if resposta.status_code == 400:
+        raise ErroValidacao(resposta.json())
+    if not resposta.ok:
+        raise ErroAPI(mensagem, status=resposta.status_code)
+    return resposta
 
 
 def autenticar(email, senha):

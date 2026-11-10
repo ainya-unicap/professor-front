@@ -210,3 +210,56 @@ class ClienteAPICadastroTests(TestCase):
         with self.assertRaises(ErroValidacao) as ctx:
             cadastrar("Maria Lima", "prof@teste.com", "x")
         self.assertEqual(ctx.exception.erros, {"email": ["Já existe uma conta com este e-mail."]})
+
+
+class ChamadaAutenticadaTests(TestCase):
+    def setUp(self):
+        sessao = self.client.session
+        sessao[CHAVE_SESSAO] = dict(RESPOSTA_PROFESSOR)
+        sessao.save()
+
+    def _request(self):
+        from django.test import RequestFactory
+
+        request = RequestFactory().get("/")
+        request.session = self.client.session
+        return request
+
+    @staticmethod
+    def _resposta(status, corpo=None):
+        from unittest.mock import Mock
+
+        resposta = Mock(status_code=status, ok=200 <= status < 300)
+        resposta.json.return_value = corpo or {}
+        return resposta
+
+    @patch("core.api._sessao.request")
+    def test_envia_o_token(self, request_mock):
+        from .api import chamar
+
+        request_mock.return_value = self._resposta(200)
+        chamar(self._request(), "GET", "turmas/")
+        self.assertEqual(request_mock.call_args.kwargs["headers"], {"Authorization": "Bearer token-access"})
+
+    @patch("core.api._sessao.request")
+    def test_renova_o_token_expirado_e_repete(self, request_mock):
+        from .api import chamar
+
+        request_mock.side_effect = [
+            self._resposta(401),
+            self._resposta(200, {"access": "token-novo"}),
+            self._resposta(200, {"ok": True}),
+        ]
+        request = self._request()
+        resposta = chamar(request, "GET", "turmas/")
+        self.assertEqual(resposta.json(), {"ok": True})
+        self.assertEqual(request.session[CHAVE_SESSAO]["access"], "token-novo")
+        self.assertEqual(request_mock.call_args.kwargs["headers"], {"Authorization": "Bearer token-novo"})
+
+    @patch("core.api._sessao.request")
+    def test_refresh_invalido_encerra_a_sessao(self, request_mock):
+        from .api import SessaoExpirada, chamar
+
+        request_mock.side_effect = [self._resposta(401), self._resposta(401)]
+        with self.assertRaises(SessaoExpirada):
+            chamar(self._request(), "GET", "turmas/")

@@ -13,6 +13,10 @@
 <form class="form" method="post" novalidate>
   {% csrf_token %}
 
+  {% for mensagem in messages %}
+    <div class="form__alerta form__alerta--info" role="status">{{ mensagem }}</div>
+  {% endfor %}
+
   {% if erro %}
     <div class="form__alerta" role="alert">{{ erro }}</div>
   {% endif %}
