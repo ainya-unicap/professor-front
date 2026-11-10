@@ -13,7 +13,7 @@ def _professor_logado(request):
 
 def login_view(request):
     if _professor_logado(request):
-        return redirect("professor:painel")
+        return redirect("professor:turmas")
 
     form = LoginForm(request.POST if request.method == "POST" else None)
     erro = None
@@ -28,14 +28,14 @@ def login_view(request):
                 erro = "Este acesso é exclusivo para professores."
             else:
                 salvar_login(request, dados)
-                return redirect("professor:painel")
+                return redirect("professor:turmas")
 
     return render(request, "auth/login.html", {"form": form, "erro": erro})
 
 
 def cadastro_view(request):
     if _professor_logado(request):
-        return redirect("professor:painel")
+        return redirect("professor:turmas")
 
     form = CadastroForm(request.POST if request.method == "POST" else None)
     erro = None
@@ -54,7 +54,7 @@ def cadastro_view(request):
             erro = e.mensagem
         else:
             salvar_login(request, dados)
-            return redirect("professor:painel")
+            return redirect("professor:turmas")
 
     return render(request, "auth/cadastro.html", {"form": form, "erro": erro})
 

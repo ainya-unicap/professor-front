@@ -64,10 +64,10 @@ class TelaLoginTests(TestCase):
         self.assertNotIn(CHAVE_SESSAO, self.client.session)
 
     @patch("core.views.autenticar")
-    def test_professor_entra_e_vai_para_o_painel(self, autenticar_mock):
+    def test_professor_entra_e_vai_para_as_turmas(self, autenticar_mock):
         autenticar_mock.return_value = RESPOSTA_PROFESSOR
         resposta = self.enviar()
-        self.assertRedirects(resposta, reverse("professor:painel"))
+        self.assertRedirects(resposta, reverse("professor:turmas"), fetch_redirect_response=False)
         self.assertEqual(self.client.session[CHAVE_SESSAO]["usuario"]["nome"], "Maria Lima")
         autenticar_mock.assert_called_once_with("prof@teste.com", "Senha123!x")
 
@@ -76,7 +76,7 @@ class TelaLoginTests(TestCase):
         autenticar_mock.return_value = RESPOSTA_PROFESSOR
         self.enviar()
         resposta = self.client.get(self.url)
-        self.assertRedirects(resposta, reverse("professor:painel"))
+        self.assertRedirects(resposta, reverse("professor:turmas"), fetch_redirect_response=False)
 
     @patch("core.views.autenticar")
     def test_logout_encerra_a_sessao(self, autenticar_mock):
@@ -90,8 +90,8 @@ class TelaLoginTests(TestCase):
         resposta = self.client.get(self.url)
         self.assertContains(resposta, f'href="{reverse("core:cadastro")}"')
 
-    def test_painel_sem_login_volta_para_login(self):
-        resposta = self.client.get(reverse("professor:painel"))
+    def test_turmas_sem_login_volta_para_login(self):
+        resposta = self.client.get(reverse("professor:turmas"))
         self.assertRedirects(resposta, self.url)
 
 
@@ -157,10 +157,10 @@ class TelaCadastroTests(TestCase):
         cadastrar_mock.assert_not_called()
 
     @patch("core.views.cadastrar")
-    def test_cadastro_ok_loga_e_vai_para_o_painel(self, cadastrar_mock):
+    def test_cadastro_ok_loga_e_vai_para_as_turmas(self, cadastrar_mock):
         cadastrar_mock.return_value = RESPOSTA_PROFESSOR
         resposta = self.client.post(self.url, self.dados)
-        self.assertRedirects(resposta, reverse("professor:painel"))
+        self.assertRedirects(resposta, reverse("professor:turmas"), fetch_redirect_response=False)
         self.assertEqual(self.client.session[CHAVE_SESSAO]["usuario"]["nome"], "Maria Lima")
         cadastrar_mock.assert_called_once_with("Maria Lima", "prof@teste.com", "canteiro-forte-2026")
 

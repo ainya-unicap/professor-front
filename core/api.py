@@ -103,3 +103,18 @@ def cadastrar(nome, email, senha):
     if not resposta.ok:
         raise ErroAPI("Não foi possível criar a conta agora. Tente novamente.", status=resposta.status_code)
     return resposta.json()
+
+
+def listar_turmas(request):
+    resposta = chamar(request, "GET", "turmas/")
+    return _verificar(resposta, "Não foi possível carregar as turmas agora.").json()
+
+
+def criar_turma(request, nome, periodo, instituicao):
+    resposta = chamar(
+        request,
+        "POST",
+        "turmas/",
+        {"nome": nome, "periodo": periodo, "instituicao": instituicao},
+    )
+    return _verificar(resposta, "Não foi possível criar a turma agora. Tente novamente.").json()
