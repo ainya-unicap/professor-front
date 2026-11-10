@@ -1,17 +1,21 @@
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from .api import ErroAPI, autenticar
-from .forms import LoginForm
+from .api import ErroAPI, ErroValidacao, autenticar, cadastrar
+from .forms import CadastroForm, LoginForm
 from .sessao import encerrar_login, salvar_login, usuario_logado
 
 
-def login_view(request):
+def _professor_logado(request):
     usuario = usuario_logado(request)
-    if usuario and usuario.get("papel") == "professor":
+    return bool(usuario and usuario.get("papel") == "professor")
+
+
+def login_view(request):
+    if _professor_logado(request):
         return redirect("professor:painel")
 
-    form = LoginForm(request.POST or None)
+    form = LoginForm(request.POST if request.method == "POST" else None)
     erro = None
 
     if request.method == "POST" and form.is_valid():
@@ -27,6 +31,32 @@ def login_view(request):
                 return redirect("professor:painel")
 
     return render(request, "auth/login.html", {"form": form, "erro": erro})
+
+
+def cadastro_view(request):
+    if _professor_logado(request):
+        return redirect("professor:painel")
+
+    form = CadastroForm(request.POST if request.method == "POST" else None)
+    erro = None
+
+    if request.method == "POST" and form.is_valid():
+        try:
+            dados = cadastrar(
+                form.cleaned_data["nome"],
+                form.cleaned_data["email"],
+                form.cleaned_data["senha"],
+            )
+        except ErroValidacao as e:
+            restantes = form.aplicar_erros_api(e.erros)
+            erro = " ".join(restantes) or None
+        except ErroAPI as e:
+            erro = e.mensagem
+        else:
+            salvar_login(request, dados)
+            return redirect("professor:painel")
+
+    return render(request, "auth/cadastro.html", {"form": form, "erro": erro})
 
 
 @require_POST
