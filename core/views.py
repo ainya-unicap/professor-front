@@ -13,6 +13,11 @@ def _professor_logado(request):
     return bool(usuario and usuario.get("role") == "professor")
 
 
+def _recaptcha_token(form):
+    """Usa o token do widget se houver; senão cai no bypass de dev, se configurado."""
+    return form.cleaned_data.get("recaptcha_token") or settings.RECAPTCHA_BYPASS_TOKEN or None
+
+
 def login_view(request):
     if _professor_logado(request):
         return redirect("professor:painel")
@@ -25,7 +30,7 @@ def login_view(request):
             tokens = autenticar(
                 form.cleaned_data["email"],
                 form.cleaned_data["senha"],
-                form.cleaned_data.get("recaptcha_token"),
+                _recaptcha_token(form),
             )
         except ErroAPI as e:
             erro = "E-mail ou senha inválidos." if e.status == 401 else e.mensagem
@@ -65,7 +70,7 @@ def cadastro_view(request):
                 form.cleaned_data["email"],
                 form.cleaned_data["senha"],
                 form.cleaned_data["confirmar_senha"],
-                form.cleaned_data.get("recaptcha_token"),
+                _recaptcha_token(form),
             )
         except ErroAPI as e:
             erro = form.aplicar_erro_api(e)
