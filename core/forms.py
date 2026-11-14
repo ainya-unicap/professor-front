@@ -12,10 +12,15 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
         error_messages={"required": "Informe sua senha."},
     )
+    recaptcha_token = forms.CharField(required=False, widget=forms.HiddenInput())
 
 
 class CadastroForm(forms.Form):
-    CAMPOS_API = {"nome": "nome", "email": "email", "password": "senha"}
+    CODIGO_PARA_CAMPO = {
+        "EMAIL_INVALIDO": "email",
+        "EMAIL_JA_CADASTRADO": "email",
+        "SENHAS_DIFERENTES": "confirmar_senha",
+    }
 
     nome = forms.CharField(
         label="Nome Completo",
@@ -40,6 +45,7 @@ class CadastroForm(forms.Form):
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
         error_messages={"required": "Confirme sua senha."},
     )
+    recaptcha_token = forms.CharField(required=False, widget=forms.HiddenInput())
 
     def clean(self):
         dados = super().clean()
@@ -49,15 +55,10 @@ class CadastroForm(forms.Form):
             self.add_error("confirmar_senha", "As senhas não conferem.")
         return dados
 
-    def aplicar_erros_api(self, erros):
-        restantes = []
-        for campo_api, mensagens in erros.items():
-            if isinstance(mensagens, str):
-                mensagens = [mensagens]
-            campo = self.CAMPOS_API.get(campo_api)
-            if campo:
-                for mensagem in mensagens:
-                    self.add_error(campo, mensagem)
-            else:
-                restantes.extend(mensagens)
-        return restantes
+    def aplicar_erro_api(self, erro):
+        """Tenta destacar o campo certo; devolve a mensagem para exibir solta se não der."""
+        campo = self.CODIGO_PARA_CAMPO.get(erro.codigo)
+        if campo:
+            self.add_error(campo, erro.mensagem)
+            return None
+        return erro.mensagem

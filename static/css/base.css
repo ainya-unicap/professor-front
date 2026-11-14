@@ -64,3 +64,30 @@ ul {
   outline: 3px solid rgba(18, 101, 63, 0.35);
   outline-offset: 2px;
 }
+
+.mensagens {
+  margin: 0;
+  padding: 16px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.mensagens__item {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+.mensagens__item--success {
+  background: #eafaf1;
+  border: 1px solid var(--verde-700);
+  color: var(--verde-900);
+}
+
+.mensagens__item--error {
+  background: var(--erro-fundo);
+  border: 1px solid var(--erro);
+  color: var(--erro);
+}

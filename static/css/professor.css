@@ -1,0 +1,95 @@
+.painel {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.painel__cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.painel__cabecalho h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.painel__secao {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.painel__secao h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--verde-900);
+}
+
+.form--linha {
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 16px;
+  max-width: none;
+}
+
+.form--linha .form__campo {
+  flex: 1;
+}
+
+.lista-turmas,
+.lista-codigos,
+.lista-entregas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista-turmas__item,
+.lista-codigos__item,
+.lista-entregas__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  background: var(--branco);
+}
+
+.lista-turmas__item a {
+  font-weight: 600;
+  color: var(--verde-700);
+}
+
+.lista-codigos__code {
+  font-family: monospace;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+}
+
+.botao-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--erro);
+  cursor: pointer;
+  font: 600 16px var(--fonte);
+}
+
+.botao--perigo {
+  background: var(--erro);
+  color: var(--branco);
+}
+
+.botao--perigo:hover {
+  background: #8c1a10;
+}

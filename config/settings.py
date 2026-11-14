@@ -10,7 +10,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:3000/api")
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "")
 
 INSTALLED_APPS = [
     "django.contrib.contenttypes",

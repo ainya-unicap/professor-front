@@ -10,7 +10,7 @@
   <p class="auth__subtitulo">Leva menos de um minuto.</p>
 </header>
 
-<form class="form" method="post" novalidate>
+<form class="form" method="post" novalidate id="form-login">
   {% csrf_token %}
 
   {% if erro %}
@@ -19,9 +19,22 @@
 
   {% include "auth/_campos.html" %}
 
+  {% if recaptcha_site_key %}
+    <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+  {% endif %}
+
   <div class="form__acoes">
     <button type="submit" class="botao botao--primario">Entrar</button>
     <p class="form__alternativa">Ainda não tem conta? <a href="{% url 'core:cadastro' %}">Cadastrar</a></p>
   </div>
 </form>
+
+{% if recaptcha_site_key %}
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script>
+    document.getElementById("form-login").addEventListener("submit", function () {
+      document.getElementById("id_recaptcha_token").value = grecaptcha.getResponse();
+    });
+  </script>
+{% endif %}
 {% endblock %}

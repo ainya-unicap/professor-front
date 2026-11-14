@@ -3,42 +3,78 @@ from django.conf import settings
 
 
 class ErroAPI(Exception):
-    def __init__(self, mensagem, status=None):
+    def __init__(self, mensagem, status=None, codigo=None, campos=None):
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.status = status
-
-
-class ErroValidacao(ErroAPI):
-    def __init__(self, erros):
-        super().__init__("Revise os campos destacados.", status=400)
-        self.erros = erros
+        self.codigo = codigo
+        self.campos = campos or {}
 
 
 def _url(caminho):
     return f"{settings.API_BASE_URL.rstrip('/')}/{caminho.lstrip('/')}"
 
 
-def _post(caminho, dados):
+def requisicao(metodo, caminho, token=None, **kwargs):
+    headers = kwargs.pop("headers", {})
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
     try:
-        return requests.post(_url(caminho), json=dados, timeout=10)
+        resposta = requests.request(metodo, _url(caminho), headers=headers, timeout=10, **kwargs)
     except requests.RequestException:
         raise ErroAPI("Não foi possível conectar ao servidor. Tente novamente.")
 
-
-def autenticar(email, senha):
-    resposta = _post("auth/login/", {"email": email, "password": senha})
-    if resposta.status_code == 401:
-        raise ErroAPI("E-mail ou senha inválidos.", status=401)
     if not resposta.ok:
-        raise ErroAPI("Não foi possível entrar agora. Tente novamente.", status=resposta.status_code)
+        corpo = {}
+        try:
+            corpo = resposta.json()
+        except ValueError:
+            pass
+        raise ErroAPI(
+            corpo.get("error") or "Não foi possível completar a ação agora. Tente novamente.",
+            status=resposta.status_code,
+            codigo=corpo.get("codigo"),
+            campos=corpo.get("campos"),
+        )
+
+    if resposta.status_code == 204 or not resposta.content:
+        return None
     return resposta.json()
 
 
-def cadastrar(nome, email, senha):
-    resposta = _post("auth/cadastro/", {"nome": nome, "email": email, "password": senha})
-    if resposta.status_code == 400:
-        raise ErroValidacao(resposta.json())
-    if not resposta.ok:
-        raise ErroAPI("Não foi possível criar a conta agora. Tente novamente.", status=resposta.status_code)
-    return resposta.json()
+def autenticar(email, senha, recaptcha_token=None):
+    dados = {"email": email, "password": senha}
+    if recaptcha_token:
+        dados["recaptchaToken"] = recaptcha_token
+    return requisicao("POST", "users/login", json=dados)
+
+
+def cadastrar(nome, email, senha, confirmar_senha, recaptcha_token=None):
+    dados = {"name": nome, "email": email, "password": senha, "confirmPassword": confirmar_senha}
+    if recaptcha_token:
+        dados["recaptchaToken"] = recaptcha_token
+    return requisicao("POST", "professores", json=dados)
+
+
+def buscar_usuario(user_id, token):
+    return requisicao("GET", f"users/{user_id}", token=token)
+
+
+def trocar_token(refresh_token):
+    return requisicao("POST", "users/refresh", json={"refreshToken": refresh_token})
+
+
+def encerrar_sessao_api(refresh_token):
+    try:
+        requisicao("POST", "users/logout", json={"refreshToken": refresh_token})
+    except ErroAPI:
+        pass
+
+
+def listar_periodos():
+    return requisicao("GET", "academic-periods")
+
+
+def listar_instituicoes():
+    return requisicao("GET", "institutions")

@@ -1,0 +1,70 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Turma · Forrageia{% endblock %}
+{% block css %}
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  <link rel="stylesheet" href="{% static 'css/professor.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="painel">
+  <header class="painel__cabecalho">
+    <h1>Turma</h1>
+    <a href="{% url 'professor:painel' %}" class="botao botao--primario">Voltar</a>
+  </header>
+
+  {% if erro %}<div class="form__alerta" role="alert">{{ erro }}</div>{% endif %}
+
+  <section class="painel__secao">
+    <h2>Códigos de entrada</h2>
+    <form method="post" action="{% url 'professor:codigo_gerar' turma_id %}">
+      {% csrf_token %}
+      <button type="submit" class="botao botao--primario">Gerar novo código</button>
+    </form>
+
+    {% if codigos %}
+      <ul class="lista-codigos">
+        {% for codigo in codigos %}
+          <li class="lista-codigos__item">
+            <span class="lista-codigos__code">{{ codigo.code }}</span>
+            <form method="post" action="{% url 'professor:codigo_apagar' turma_id codigo.id %}">
+              {% csrf_token %}
+              <button type="submit" class="botao-link">Apagar</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Nenhum código ativo.</p>
+    {% endif %}
+  </section>
+
+  <section class="painel__secao">
+    <h2>Entregas</h2>
+    {% if entregas %}
+      <ul class="lista-entregas">
+        {% for entrega in entregas %}
+          <li class="lista-entregas__item">
+            <span>{{ entrega.user.name }} ({{ entrega.user.email }})</span>
+            <a href="{{ entrega.fileUrl }}" target="_blank" rel="noopener">{{ entrega.fileName }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Nenhuma entrega ainda.</p>
+    {% endif %}
+  </section>
+
+  <section class="painel__secao">
+    <form
+      method="post"
+      action="{% url 'professor:turma_apagar' turma_id %}"
+      onsubmit="return confirm('Apagar esta turma? Essa ação não pode ser desfeita.');"
+    >
+      {% csrf_token %}
+      <button type="submit" class="botao botao--perigo">Apagar turma</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
