@@ -48,7 +48,15 @@
           <li class="lista-entregas__item">
             <span>{{ aluno.name }} ({{ aluno.email }})</span>
             {% if aluno.entrega %}
-              <a href="{{ aluno.entrega.fileUrl }}" target="_blank" rel="noopener">Baixar {{ aluno.entrega.fileName }}</a>
+              <a
+                href="{{ aluno.entrega.fileUrl }}"
+                target="_blank"
+                rel="noopener"
+                download="relatorio-{{ aluno.name|slugify }}.pdf"
+                class="botao botao--primario botao--pequeno"
+              >
+                Baixar relatório ({{ aluno.entrega.submittedAt|slice:":10" }})
+              </a>
             {% else %}
               <span class="lista-entregas__pendente">Não entregou</span>
             {% endif %}
