@@ -31,15 +31,119 @@
   color: var(--verde-900);
 }
 
-.form--linha {
-  flex-direction: row;
-  align-items: flex-end;
+.painel__secao-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.modal-turma {
+  width: min(560px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 28px;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.modal-turma::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-turma__cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.modal-turma__cabecalho h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--verde-900);
+}
+
+.modal-turma__fechar {
+  border: 0;
+  background: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--cinza-texto);
+  cursor: pointer;
+}
+
+.modal-turma__acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.form--modal {
   gap: 16px;
   max-width: none;
 }
 
-.form--linha .form__campo {
-  flex: 1;
+.form__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--cinza-texto);
+  cursor: pointer;
+}
+
+.form__checkbox input {
+  width: auto;
+  height: auto;
+}
+
+.form__grupo-extra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px;
+  margin-top: -4px;
+  border: 1px dashed var(--borda);
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.form__grupo-extra[hidden] {
+  display: none;
+}
+
+.form__grupo-extra .form__campo {
+  flex: 1 1 140px;
+}
+
+@media (max-width: 700px) {
+  .painel {
+    padding: 32px 16px 60px;
+  }
+
+  .painel__cabecalho,
+  .painel__secao-cabecalho {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .modal-turma {
+    width: 100vw;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .lista-turmas__item,
+  .lista-codigos__item,
+  .lista-entregas__item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 
 .lista-turmas,

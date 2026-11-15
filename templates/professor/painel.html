@@ -20,16 +20,11 @@
   {% if erro %}<div class="form__alerta" role="alert">{{ erro }}</div>{% endif %}
 
   <section class="painel__secao">
-    <h2>Nova turma</h2>
-    <form method="post" action="{% url 'professor:turma_criar' %}" class="form form--linha" novalidate>
-      {% csrf_token %}
-      {% include "auth/_campos.html" with form=form_turma %}
-      <button type="submit" class="botao botao--primario">Criar turma</button>
-    </form>
-  </section>
+    <div class="painel__secao-cabecalho">
+      <h2>Minhas turmas</h2>
+      <button type="button" class="botao botao--primario" id="abrir-modal-turma">Criar turma</button>
+    </div>
 
-  <section class="painel__secao">
-    <h2>Minhas turmas</h2>
     {% if turmas %}
       <ul class="lista-turmas">
         {% for turma in turmas %}
@@ -43,4 +38,118 @@
     {% endif %}
   </section>
 </div>
+
+<dialog id="modal-criar-turma" class="modal-turma"{% if form_turma.errors %} open{% endif %}>
+  <form method="post" action="{% url 'professor:turma_criar' %}" class="form form--modal" novalidate>
+    {% csrf_token %}
+    <div class="modal-turma__cabecalho">
+      <h2>Nova turma</h2>
+      <button type="button" class="modal-turma__fechar" id="fechar-modal-turma" aria-label="Fechar">×</button>
+    </div>
+
+    <div class="form__campo{% if form_turma.name.errors %} form__campo--erro{% endif %}">
+      <label class="form__label" for="{{ form_turma.name.id_for_label }}">{{ form_turma.name.label }}</label>
+      {{ form_turma.name }}
+      {% for e in form_turma.name.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
+    </div>
+
+    <div class="form__campo{% if form_turma.period_nome.errors %} form__campo--erro{% endif %}">
+      <label class="form__label" for="{{ form_turma.period_nome.id_for_label }}">{{ form_turma.period_nome.label }}</label>
+      {{ form_turma.period_nome }}
+      {% for e in form_turma.period_nome.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
+    </div>
+
+    <label class="form__checkbox" for="{{ form_turma.period_novo.id_for_label }}">
+      {{ form_turma.period_novo }}
+      {{ form_turma.period_novo.label }}
+    </label>
+
+    <div class="form__grupo-extra" id="grupo-periodo-novo">
+      <div class="form__campo{% if form_turma.period_semestre.errors %} form__campo--erro{% endif %}">
+        <label class="form__label" for="{{ form_turma.period_semestre.id_for_label }}">{{ form_turma.period_semestre.label }}</label>
+        {{ form_turma.period_semestre }}
+        {% for e in form_turma.period_semestre.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
+      </div>
+      <div class="form__campo{% if form_turma.period_inicio.errors %} form__campo--erro{% endif %}">
+        <label class="form__label" for="{{ form_turma.period_inicio.id_for_label }}">{{ form_turma.period_inicio.label }}</label>
+        {{ form_turma.period_inicio }}
+        {% for e in form_turma.period_inicio.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
+      </div>
+      <div class="form__campo{% if form_turma.period_fim.errors %} form__campo--erro{% endif %}">
+        <label class="form__label" for="{{ form_turma.period_fim.id_for_label }}">{{ form_turma.period_fim.label }}</label>
+        {{ form_turma.period_fim }}
+        {% for e in form_turma.period_fim.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form__campo{% if form_turma.institution_nome.errors %} form__campo--erro{% endif %}">
+      <label class="form__label" for="{{ form_turma.institution_nome.id_for_label }}">{{ form_turma.institution_nome.label }}</label>
+      {{ form_turma.institution_nome }}
+      {% for e in form_turma.institution_nome.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
+    </div>
+
+    <label class="form__checkbox" for="{{ form_turma.institution_novo.id_for_label }}">
+      {{ form_turma.institution_novo }}
+      {{ form_turma.institution_novo.label }}
+    </label>
+
+    <div class="form__grupo-extra" id="grupo-instituicao-nova">
+      <div class="form__campo{% if form_turma.institution_sigla.errors %} form__campo--erro{% endif %}">
+        <label class="form__label" for="{{ form_turma.institution_sigla.id_for_label }}">{{ form_turma.institution_sigla.label }}</label>
+        {{ form_turma.institution_sigla }}
+        {% for e in form_turma.institution_sigla.errors %}<p class="form__erro">{{ e }}</p>{% endfor %}
+      </div>
+    </div>
+
+    {% for campo in form_turma.hidden_fields %}{{ campo }}{% endfor %}
+
+    <div class="modal-turma__acoes">
+      <button type="button" class="botao" id="cancelar-modal-turma">Cancelar</button>
+      <button type="submit" class="botao botao--primario">Criar turma</button>
+    </div>
+  </form>
+</dialog>
+
+<datalist id="lista-periodos">
+  {% for p in periodos %}<option value="{{ p.name }}"></option>{% endfor %}
+</datalist>
+<datalist id="lista-instituicoes">
+  {% for i in instituicoes %}<option value="{{ i.abbreviation }}">{{ i.name }}</option>{% endfor %}
+</datalist>
+{% endblock %}
+
+{% block js %}
+<script>
+(function () {
+  var dialog = document.getElementById('modal-criar-turma');
+  var abrir = document.getElementById('abrir-modal-turma');
+  var fechar = document.getElementById('fechar-modal-turma');
+  var cancelar = document.getElementById('cancelar-modal-turma');
+
+  if (dialog && dialog.hasAttribute('open')) {
+    dialog.removeAttribute('open');
+    dialog.showModal();
+  }
+
+  if (abrir) abrir.addEventListener('click', function () { dialog.showModal(); });
+  if (fechar) fechar.addEventListener('click', function () { dialog.close(); });
+  if (cancelar) cancelar.addEventListener('click', function () { dialog.close(); });
+
+  function configurarCheckbox(checkboxId, grupoId) {
+    var checkbox = document.getElementById(checkboxId);
+    var grupo = document.getElementById(grupoId);
+    if (!checkbox || !grupo) return;
+
+    function atualizar() {
+      grupo.hidden = !checkbox.checked;
+    }
+
+    checkbox.addEventListener('change', atualizar);
+    atualizar();
+  }
+
+  configurarCheckbox('id_period_novo', 'grupo-periodo-novo');
+  configurarCheckbox('id_institution_novo', 'grupo-instituicao-nova');
+})();
+</script>
 {% endblock %}

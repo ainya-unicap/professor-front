@@ -2,18 +2,23 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from core.api import ErroAPI, listar_instituicoes, listar_periodos
+from core.api import ErroAPI, criar_instituicao, criar_periodo, listar_instituicoes, listar_periodos
 from core.sessao import com_renovacao, professor_obrigatorio
 
 from . import api as turmas_api
 from .forms import TurmaForm
 
 
-def _opcoes_formulario():
+def _opcoes_formulario(request):
     try:
-        return listar_periodos(), listar_instituicoes()
+        periodos = com_renovacao(request, listar_periodos)
     except ErroAPI:
-        return [], []
+        periodos = []
+    try:
+        instituicoes = listar_instituicoes()
+    except ErroAPI:
+        instituicoes = []
+    return periodos, instituicoes
 
 
 @professor_obrigatorio
@@ -25,7 +30,7 @@ def painel(request):
     except ErroAPI as e:
         erro = e.mensagem
 
-    periodos, instituicoes = _opcoes_formulario()
+    periodos, instituicoes = _opcoes_formulario(request)
     form_turma = TurmaForm(periodos=periodos, instituicoes=instituicoes)
 
     return render(request, "professor/painel.html", {
@@ -33,24 +38,48 @@ def painel(request):
         "turmas": turmas,
         "erro": erro,
         "form_turma": form_turma,
+        "periodos": periodos,
+        "instituicoes": instituicoes,
     })
 
 
 @professor_obrigatorio
 @require_POST
 def turma_criar(request):
-    periodos, instituicoes = _opcoes_formulario()
+    periodos, instituicoes = _opcoes_formulario(request)
     form = TurmaForm(request.POST, periodos=periodos, instituicoes=instituicoes)
     erro = None
 
     if form.is_valid():
         try:
+            period_id = form.cleaned_data.get("period_id")
+            if not period_id:
+                periodo = com_renovacao(
+                    request,
+                    criar_periodo,
+                    form.periodo_novo["nome"],
+                    form.periodo_novo["semestre"],
+                    form.periodo_novo["data_inicio"].isoformat(),
+                    form.periodo_novo["data_fim"].isoformat(),
+                )
+                period_id = periodo["id"]
+
+            institution_id = form.cleaned_data.get("institution_id")
+            if not institution_id:
+                instituicao = com_renovacao(
+                    request,
+                    criar_instituicao,
+                    form.instituicao_nova["nome"],
+                    form.instituicao_nova["sigla"],
+                )
+                institution_id = instituicao["id"]
+
             com_renovacao(
                 request,
                 turmas_api.criar_turma,
                 form.cleaned_data["name"],
-                form.cleaned_data["period_id"],
-                form.cleaned_data.get("institution_id") or None,
+                period_id,
+                institution_id,
             )
         except ErroAPI as e:
             erro = form.aplicar_erro_api(e)
@@ -68,6 +97,8 @@ def turma_criar(request):
         "turmas": turmas,
         "erro": erro,
         "form_turma": form,
+        "periodos": periodos,
+        "instituicoes": instituicoes,
     })
 
 

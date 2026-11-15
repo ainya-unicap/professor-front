@@ -72,9 +72,24 @@ def encerrar_sessao_api(refresh_token):
         pass
 
 
-def listar_periodos():
-    return requisicao("GET", "academic-periods")
+def listar_periodos(token):
+    return requisicao("GET", "academic-periods", token=token)
+
+
+def criar_periodo(token, nome, semestre, data_inicio, data_fim):
+    dados = {
+        "name": nome,
+        "semester": semestre,
+        "start_date": data_inicio,
+        "end_date": data_fim,
+    }
+    return requisicao("POST", "academic-periods", token=token, json=dados)
 
 
 def listar_instituicoes():
     return requisicao("GET", "institutions")
+
+
+def criar_instituicao(token, nome, sigla):
+    dados = {"name": nome, "abbreviation": sigla}
+    return requisicao("POST", "institutions", token=token, json=dados)
