@@ -1,15 +1,17 @@
 .auth {
   display: grid;
   grid-template-columns: 698fr 742fr;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 .auth__lateral {
   display: flex;
   flex-direction: column;
+  height: 100vh;
   padding: 70px 62px 60px;
   background: var(--verde-900);
   color: var(--branco);
+  overflow-y: auto;
 }
 
 .marca {
@@ -75,8 +77,10 @@
 }
 
 .auth__conteudo {
+  height: 100vh;
   padding: 67px 46px 60px;
   background: var(--superficie);
+  overflow-y: auto;
 }
 
 .auth__cabecalho {
@@ -229,6 +233,13 @@
 @media (max-width: 800px) {
   .auth {
     grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .auth__lateral,
+  .auth__conteudo {
+    height: auto;
+    overflow-y: visible;
   }
 
   .marca__logo {
