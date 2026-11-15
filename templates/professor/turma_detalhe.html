@@ -41,18 +41,22 @@
   </section>
 
   <section class="painel__secao">
-    <h2>Entregas</h2>
-    {% if entregas %}
+    <h2>Alunos na turma</h2>
+    {% if alunos %}
       <ul class="lista-entregas">
-        {% for entrega in entregas %}
+        {% for aluno in alunos %}
           <li class="lista-entregas__item">
-            <span>{{ entrega.user.name }} ({{ entrega.user.email }})</span>
-            <a href="{{ entrega.fileUrl }}" target="_blank" rel="noopener">{{ entrega.fileName }}</a>
+            <span>{{ aluno.name }} ({{ aluno.email }})</span>
+            {% if aluno.entrega %}
+              <a href="{{ aluno.entrega.fileUrl }}" target="_blank" rel="noopener">Baixar {{ aluno.entrega.fileName }}</a>
+            {% else %}
+              <span class="lista-entregas__pendente">Não entregou</span>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p>Nenhuma entrega ainda.</p>
+      <p>Nenhum aluno vinculado a esta turma ainda.</p>
     {% endif %}
   </section>
 

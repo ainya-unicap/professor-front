@@ -106,10 +106,10 @@ def turma_criar(request):
 def turma_detalhe(request, turma_id):
     erro = None
     codigos = []
-    entregas = []
+    alunos = []
     try:
         codigos = com_renovacao(request, turmas_api.listar_codigos, turma_id)
-        entregas = com_renovacao(request, turmas_api.listar_entregas, turma_id)
+        alunos = com_renovacao(request, turmas_api.listar_alunos, turma_id)
     except ErroAPI as e:
         erro = e.mensagem
 
@@ -117,7 +117,7 @@ def turma_detalhe(request, turma_id):
         "usuario": request.usuario,
         "turma_id": turma_id,
         "codigos": codigos,
-        "entregas": entregas,
+        "alunos": alunos,
         "erro": erro,
     })
 

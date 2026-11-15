@@ -180,6 +180,12 @@
   letter-spacing: 0.1em;
 }
 
+.lista-entregas__pendente {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cinza-texto);
+}
+
 .botao-link {
   border: 0;
   background: none;

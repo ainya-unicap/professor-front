@@ -30,3 +30,7 @@ def apagar_codigo(token, turma_id, codigo_id):
 
 def listar_entregas(token, turma_id):
     return requisicao("GET", f"professores/turmas/{turma_id}/entregas", token=token)
+
+
+def listar_alunos(token, turma_id):
+    return requisicao("GET", f"professores/turmas/{turma_id}/alunos", token=token)
