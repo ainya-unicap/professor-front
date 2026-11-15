@@ -15,19 +15,18 @@
 .marca {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
 }
 
 .marca__logo {
-  width: 54px;
-  height: 54px;
-  border-radius: 10px;
-  background: var(--verde-700);
+  width: 76px;
+  height: 76px;
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 .marca__nome {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -230,6 +229,15 @@
 @media (max-width: 800px) {
   .auth {
     grid-template-columns: 1fr;
+  }
+
+  .marca__logo {
+    width: 60px;
+    height: 60px;
+  }
+
+  .marca__nome {
+    font-size: 24px;
   }
 
   .auth__lateral {
