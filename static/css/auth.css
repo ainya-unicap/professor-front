@@ -206,6 +206,34 @@
   text-decoration: underline;
 }
 
+.campo-senha {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.campo-senha input {
+  padding-right: 46px;
+}
+
+.campo-senha__toggle {
+  position: absolute;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--cinza-texto);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.campo-senha__toggle:hover {
+  color: var(--verde-700);
+}
+
 @media (max-width: 900px) {
   .auth {
     grid-template-columns: 1fr;
