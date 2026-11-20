@@ -40,12 +40,12 @@ ul {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 139px;
-  height: 59px;
+  min-width: 130px;
+  height: 44px;
   padding: 0 24px;
   border: 0;
   border-radius: 10px;
-  font: 600 20px/1 var(--fonte);
+  font: 600 15px/1 var(--fonte);
   letter-spacing: -0.02em;
   cursor: pointer;
   transition: background-color 0.15s ease;
