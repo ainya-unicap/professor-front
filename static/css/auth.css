@@ -1,59 +1,61 @@
 .auth {
   display: grid;
-  grid-template-columns: 698fr 742fr;
+  grid-template-columns: 48fr 52fr;
   height: 100vh;
+  overflow: hidden;
 }
 
 .auth__lateral {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   height: 100vh;
-  padding: 70px 62px 60px;
+  padding: 36px 48px;
   background: var(--verde-900);
   color: var(--branco);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .marca {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
 }
 
 .marca__logo {
-  width: 76px;
-  height: 76px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
   object-fit: contain;
 }
 
 .marca__nome {
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
 .auth__chamada {
-  margin-top: 139px;
+  margin: auto 0;
 }
 
 .auth__titulo-lateral {
-  max-width: 526px;
-  font-size: 45px;
+  max-width: 420px;
+  font-size: 32px;
   font-weight: 800;
-  line-height: 1.36;
+  line-height: 1.25;
   letter-spacing: -0.02em;
 }
 
 .auth__titulo-lateral--estreito {
-  max-width: 433px;
+  max-width: 340px;
 }
 
 .auth__beneficios {
   display: flex;
   flex-direction: column;
-  gap: 31px;
-  margin-top: 43px;
+  gap: 18px;
+  margin-top: 28px;
   padding: 0;
   list-style: none;
 }
@@ -61,47 +63,56 @@
 .auth__beneficios li {
   display: flex;
   align-items: center;
-  gap: 11px;
-  font-size: 25px;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.4;
   letter-spacing: -0.02em;
 }
 
 .auth__beneficios img {
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
 }
 
 .auth__rodape {
-  margin-top: auto;
-  font-size: 25px;
+  font-size: 15px;
   letter-spacing: -0.02em;
+  opacity: 0.9;
 }
 
 .auth__conteudo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   height: 100vh;
-  padding: 67px 46px 60px;
+  padding: 28px 56px;
   background: var(--superficie);
   overflow-y: auto;
 }
 
 .auth__cabecalho {
-  margin-bottom: 129px;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto 28px;
 }
 
 .auth__cabecalho--compacto {
-  margin-bottom: 45px;
+  margin-bottom: 16px;
 }
 
 .auth__titulo {
-  font-size: 45px;
+  font-size: 30px;
   font-weight: 800;
-  line-height: 1.36;
+  line-height: 1.2;
   letter-spacing: -0.02em;
   color: var(--verde-900);
 }
 
 .auth__subtitulo {
-  margin-top: -13px;
-  font-size: 35px;
+  margin-top: 2px;
+  font-size: 19px;
+  font-weight: 400;
   letter-spacing: -0.02em;
   color: var(--cinza-texto);
 }
@@ -109,26 +120,29 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 35px;
-  max-width: 647px;
+  gap: 16px;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
 }
 
 .form--compacto {
-  gap: 31px;
+  gap: 11px;
 }
 
 .form--compacto .form__acoes {
-  margin-top: 34px;
+  margin-top: 10px;
 }
 
 .form__campo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .form__label {
-  font-size: 25px;
+  font-size: 14px;
+  font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--cinza-texto);
 }
@@ -136,13 +150,13 @@
 .form__campo input,
 .form__campo select {
   width: 100%;
-  height: 69px;
-  padding: 0 24px;
-  border: 2px solid var(--borda);
-  border-radius: 20px;
+  height: 42px;
+  padding: 0 16px;
+  border: 1.5px solid var(--borda);
+  border-radius: 12px;
   background: var(--branco);
-  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
-  font: 400 22px var(--fonte);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  font: 400 14px var(--fonte);
   color: var(--verde-900);
   transition: border-color 0.15s ease;
 }
@@ -158,16 +172,16 @@
 }
 
 .form__erro {
-  font-size: 16px;
+  font-size: 12px;
   color: var(--erro);
 }
 
 .form__alerta {
-  padding: 14px 20px;
+  padding: 10px 14px;
   border: 1px solid var(--erro);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--erro-fundo);
-  font-size: 18px;
+  font-size: 13px;
   color: var(--erro);
 }
 
@@ -175,13 +189,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  margin-top: 40px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .form__alternativa {
-  max-width: 249px;
-  font-size: 25px;
+  font-size: 14px;
   letter-spacing: -0.02em;
   text-align: center;
   color: var(--cinza-texto);
@@ -190,50 +203,14 @@
 .form__alternativa a {
   font-weight: 600;
   color: var(--verde-700);
+  text-decoration: underline;
 }
 
-@media (max-width: 1100px) {
-  .auth__lateral {
-    padding: 48px 40px;
-  }
-
-  .auth__chamada {
-    margin-top: 96px;
-  }
-
-  .auth__titulo-lateral,
-  .auth__titulo {
-    font-size: 36px;
-  }
-
-  .auth__subtitulo {
-    font-size: 28px;
-  }
-
-  .auth__beneficios li,
-  .auth__rodape,
-  .form__label,
-  .form__alternativa {
-    font-size: 20px;
-  }
-
-  .auth__conteudo {
-    padding: 48px 40px;
-  }
-
-  .auth__cabecalho {
-    margin-bottom: 72px;
-  }
-
-  .auth__cabecalho--compacto {
-    margin-bottom: 36px;
-  }
-}
-
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .auth {
     grid-template-columns: 1fr;
     height: auto;
+    overflow: visible;
   }
 
   .auth__lateral,
@@ -243,16 +220,16 @@
   }
 
   .marca__logo {
-    width: 60px;
-    height: 60px;
+    width: 36px;
+    height: 36px;
   }
 
   .marca__nome {
-    font-size: 24px;
+    font-size: 18px;
   }
 
   .auth__lateral {
-    padding: 32px 24px;
+    padding: 24px;
   }
 
   .auth__chamada,
@@ -261,32 +238,6 @@
   }
 
   .auth__conteudo {
-    padding: 40px 24px;
-  }
-
-  .auth__titulo {
-    font-size: 32px;
-  }
-
-  .auth__subtitulo {
-    margin-top: -6px;
-    font-size: 22px;
-  }
-
-  .auth__cabecalho {
-    margin-bottom: 48px;
-  }
-
-  .auth__cabecalho--compacto {
-    margin-bottom: 28px;
-  }
-
-  .form--compacto {
-    gap: 20px;
-  }
-
-  .form__campo input {
-    height: 56px;
-    font-size: 18px;
+    padding: 32px 24px;
   }
 }
