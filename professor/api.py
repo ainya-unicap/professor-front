@@ -34,3 +34,7 @@ def listar_entregas(token, turma_id):
 
 def listar_alunos(token, turma_id):
     return requisicao("GET", f"professores/turmas/{turma_id}/alunos", token=token)
+
+
+def listar_canteiros(token, turma_id):
+    return requisicao("GET", f"professores/turmas/{turma_id}/canteiros", token=token)

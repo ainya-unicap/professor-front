@@ -143,45 +143,29 @@ def turma_criar(request):
     })
 
 
-def _extrair_texto_campo(dados, chaves):
-    if not isinstance(dados, dict):
-        return None
-    for chave in chaves:
-        valor = dados.get(chave)
-        if isinstance(valor, str) and valor.strip():
-            return valor.strip()
-        if isinstance(valor, dict):
-            nome = (
-                valor.get("name")
-                or valor.get("nome")
-                or valor.get("title")
-                or valor.get("titulo")
-                or valor.get("species")
-                or valor.get("especie")
-                or valor.get("code")
-                or valor.get("codigo")
-            )
-            if isinstance(nome, str) and nome.strip():
-                return nome.strip()
-    return None
+def _canteiros_por_aluno(canteiros):
+    """Mapeia user_id -> lista de "Planta (Canteiro)" a partir de
+    GET /professores/turmas/:id/canteiros (canteiros etiquetados com a turma)."""
+    por_aluno = {}
+    if not isinstance(canteiros, list):
+        return por_aluno
 
+    for canteiro in canteiros:
+        planta = (canteiro.get("plant") or {}).get("name")
+        nome_canteiro = canteiro.get("name")
+        if planta and nome_canteiro:
+            texto = f"{planta} ({nome_canteiro})"
+        else:
+            texto = planta or nome_canteiro or ""
+        if not texto:
+            continue
 
-def _extrair_planta_canteiro(aluno, entrega):
-    chaves_planta = (
-        "plant", "planta", "plantName", "plant_name", "nomePlanta", "nome_planta",
-        "forage", "forrageira", "species", "especie", "cultura",
-    )
-    chaves_canteiro = (
-        "plot", "canteiro", "plotName", "plot_name", "nomeCanteiro", "nome_canteiro",
-        "parcela", "area",
-    )
+        for usuario in canteiro.get("users") or []:
+            user_id = str(usuario.get("id"))
+            if user_id:
+                por_aluno.setdefault(user_id, []).append(texto)
 
-    planta = _extrair_texto_campo(entrega, chaves_planta) or _extrair_texto_campo(aluno, chaves_planta)
-    canteiro = _extrair_texto_campo(entrega, chaves_canteiro) or _extrair_texto_campo(aluno, chaves_canteiro)
-
-    if planta and canteiro and planta != canteiro:
-        return f"{planta} · {canteiro}"
-    return planta or canteiro or ""
+    return por_aluno
 
 
 @professor_obrigatorio
@@ -204,12 +188,19 @@ def turma_detalhe(request, turma_id):
     except ErroAPI:
         entregas = []
 
+    try:
+        canteiros = com_renovacao(request, turmas_api.listar_canteiros, turma_id)
+    except ErroAPI:
+        canteiros = []
+
     entregas_por_aluno = {}
     if isinstance(entregas, list):
         for item in entregas:
             chave_aluno = item.get("student_id") or item.get("aluno_id") or item.get("user_id")
             if chave_aluno:
                 entregas_por_aluno[str(chave_aluno)] = item
+
+    plantas_por_aluno = _canteiros_por_aluno(canteiros)
 
     for aluno in alunos:
         entrega = aluno.get("entrega") or entregas_por_aluno.get(str(aluno.get("id")))
@@ -223,7 +214,7 @@ def turma_detalhe(request, turma_id):
                         dt = timezone.make_aware(dt, timezone.utc)
                     entrega["data_local"] = timezone.localtime(dt)
 
-        aluno["planta_canteiro"] = _extrair_planta_canteiro(aluno, entrega)
+        aluno["planta_canteiro"] = "; ".join(plantas_por_aluno.get(str(aluno.get("id")), []))
 
     return render(request, "professor/turma_detalhe.html", {
         "usuario": request.usuario,
