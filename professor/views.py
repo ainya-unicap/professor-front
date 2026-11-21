@@ -21,6 +21,42 @@ def _opcoes_formulario(request):
     return periodos, instituicoes
 
 
+def _preencher_contagens(request, turmas):
+    for turma in turmas:
+        turma_id = turma.get("id")
+        alunos = []
+        entregas = None
+
+        if turma_id:
+            try:
+                alunos = com_renovacao(request, turmas_api.listar_alunos, turma_id)
+            except ErroAPI:
+                alunos = []
+
+            try:
+                entregas = com_renovacao(request, turmas_api.listar_entregas, turma_id)
+            except ErroAPI:
+                entregas = None
+
+        total_alunos = len(alunos) if isinstance(alunos, list) else 0
+
+        if isinstance(entregas, list):
+            relatorios_entregues = len(entregas)
+        elif isinstance(alunos, list):
+            relatorios_entregues = sum(
+                1 for aluno in alunos
+                if any(
+                    aluno.get(chave)
+                    for chave in ("relatorio", "entrega", "report", "arquivo", "arquivo_url", "url", "data_entrega", "submittedAt")
+                )
+            )
+        else:
+            relatorios_entregues = 0
+
+        turma["total_alunos"] = total_alunos
+        turma["relatorios_entregues"] = relatorios_entregues
+
+
 @professor_obrigatorio
 def painel(request):
     erro = None
@@ -32,6 +68,7 @@ def painel(request):
 
     periodos, instituicoes = _opcoes_formulario(request)
     form_turma = TurmaForm(periodos=periodos, instituicoes=instituicoes)
+    _preencher_contagens(request, turmas)
 
     return render(request, "professor/painel.html", {
         "usuario": request.usuario,
@@ -91,6 +128,8 @@ def turma_criar(request):
         turmas = com_renovacao(request, turmas_api.listar_turmas)
     except ErroAPI:
         turmas = []
+
+    _preencher_contagens(request, turmas)
 
     return render(request, "professor/painel.html", {
         "usuario": request.usuario,

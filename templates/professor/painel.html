@@ -1,49 +1,58 @@
-{% extends "base/base.html" %}
-{% load static %}
+{% extends "professor/base_professor.html" %}
 
 {% block title %}Painel · Forrageia{% endblock %}
-{% block css %}
-  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
-  <link rel="stylesheet" href="{% static 'css/professor.css' %}">
-{% endblock %}
 
-{% block body %}
-<div class="painel">
-  <header class="painel__cabecalho">
-    <h1>Olá, {{ usuario.name }}</h1>
-    <form method="post" action="{% url 'core:logout' %}">
-      {% csrf_token %}
-      <button type="submit" class="botao botao--primario">Sair</button>
-    </form>
-  </header>
+{% block conteudo_prof %}
+<header class="banner-prof">
+  <h1 class="banner-prof__titulo">Olá, {{ usuario.name|default:"Professora" }}</h1>
+  <button type="button" class="botao botao--branco" id="abrir-modal-turma">Nova Turma</button>
+</header>
 
-  {% if erro %}<div class="form__alerta" role="alert">{{ erro }}</div>{% endif %}
+{% if erro %}
+  <div class="form__alerta" role="alert" style="margin-top: 16px;">{{ erro }}</div>
+{% endif %}
 
-  <section class="painel__secao">
-    <div class="painel__secao-cabecalho">
-      <h2>Minhas turmas</h2>
-      <button type="button" class="botao botao--primario" id="abrir-modal-turma">Criar turma</button>
-    </div>
+<section class="secao-turmas">
+  <h2 class="secao-turmas__titulo">Turmas</h2>
+  <p class="secao-turmas__subtitulo">Gerencie alunos, convites e relatórios.</p>
 
-    {% if turmas %}
-      <ul class="lista-turmas">
-        {% for turma in turmas %}
-          <li class="lista-turmas__item">
-            <a href="{% url 'professor:turma_detalhe' turma.id %}">{{ turma.name }}</a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Você ainda não criou nenhuma turma.</p>
-    {% endif %}
-  </section>
-</div>
+  {% if turmas %}
+    <ul class="lista-turmas">
+      {% for turma in turmas %}
+        <li class="turma-card">
+          <div>
+            <h3 class="turma-card__nome">{{ turma.name }}</h3>
+            <p class="turma-card__meta">
+              {% if turma.period.name %}{{ turma.period.name }} · {% elif turma.period_name %}{{ turma.period_name }} · {% endif %}
+              {{ turma.total_alunos|default:0 }} Alunos
+            </p>
+          </div>
+
+          <div class="turma-card__progresso"
+               data-entregues="{{ turma.relatorios_entregues|default:0 }}"
+               data-total="{{ turma.total_alunos|default:0 }}">
+            <div class="turma-card__barra">
+              <span class="turma-card__barra-preenchida"></span>
+            </div>
+            <span class="turma-card__contagem">
+              {{ turma.relatorios_entregues|default:0 }} de {{ turma.total_alunos|default:0 }} relatórios entregues
+            </span>
+          </div>
+
+          <a href="{% url 'professor:turma_detalhe' turma.id %}" class="botao-abrir">Abrir</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p style="margin-top: 20px; color: var(--cinza-texto);">Você ainda não criou nenhuma turma.</p>
+  {% endif %}
+</section>
 
 <dialog id="modal-criar-turma" class="modal-turma"{% if form_turma.errors %} open{% endif %}>
   <form method="post" action="{% url 'professor:turma_criar' %}" class="form form--modal" novalidate>
     {% csrf_token %}
     <div class="modal-turma__cabecalho">
-      <h2>Nova turma</h2>
+      <h2>Nova Turma</h2>
       <button type="button" class="modal-turma__fechar" id="fechar-modal-turma" aria-label="Fechar">×</button>
     </div>
 
@@ -103,9 +112,16 @@
 
     {% for campo in form_turma.hidden_fields %}{{ campo }}{% endfor %}
 
+    <div class="modal-aviso">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+      </svg>
+      <span>Ao criar, geramos um link e um código para você compartilhar com os alunos onde preferir para que sejam vinculados à sala criada.</span>
+    </div>
+
     <div class="modal-turma__acoes">
-      <button type="button" class="botao" id="cancelar-modal-turma">Cancelar</button>
-      <button type="submit" class="botao botao--primario">Criar turma</button>
+      <button type="submit" class="botao botao--primario">Criar Turma</button>
+      <button type="button" class="botao botao--texto" id="cancelar-modal-turma">Cancelar</button>
     </div>
   </form>
 </dialog>
@@ -150,6 +166,14 @@
 
   configurarCheckbox('id_period_novo', 'grupo-periodo-novo');
   configurarCheckbox('id_institution_novo', 'grupo-instituicao-nova');
+
+  document.querySelectorAll('.turma-card__progresso').forEach(function (el) {
+    var entregues = Number(el.dataset.entregues) || 0;
+    var total = Number(el.dataset.total) || 0;
+    var pct = total > 0 ? Math.min(100, Math.round((entregues / total) * 100)) : 0;
+    var barra = el.querySelector('.turma-card__barra-preenchida');
+    if (barra) barra.style.width = pct + '%';
+  });
 })();
 </script>
 {% endblock %}
