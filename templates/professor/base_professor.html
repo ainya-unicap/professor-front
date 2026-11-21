@@ -1,0 +1,47 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block css %}
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  <link rel="stylesheet" href="{% static 'css/professor.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="layout-prof">
+  <aside class="sidebar">
+    <div class="sidebar__topo">
+      <div class="sidebar__marca">
+        <span class="sidebar__titulo">Forrageia</span>
+        <span class="sidebar__subtitulo">Área da professora</span>
+      </div>
+
+      <nav class="sidebar__nav" aria-label="Menu principal">
+        <a href="{% url 'professor:painel' %}" class="sidebar__link sidebar__link--ativo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Turma
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar__rodape">
+      <div class="sidebar__usuario">
+        <p class="sidebar__usuario-nome">{{ usuario.name|default:"Professora" }}</p>
+        {% if usuario.id %}
+          <p class="sidebar__usuario-id" title="{{ usuario.id }}">{{ usuario.id }}</p>
+        {% endif %}
+      </div>
+
+      <form method="post" action="{% url 'core:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="sidebar__sair">Sair</button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="layout-prof__conteudo">
+    {% block conteudo_prof %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
