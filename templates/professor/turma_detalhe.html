@@ -1,82 +1,161 @@
-{% extends "base/base.html" %}
-{% load static %}
+{% extends "professor/base_professor.html" %}
 
-{% block title %}Turma · Forrageia{% endblock %}
-{% block css %}
-  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
-  <link rel="stylesheet" href="{% static 'css/professor.css' %}">
+{% block title %}{{ turma.name|default:"Turma" }} · Forrageia{% endblock %}
+
+{% block conteudo_prof %}
+<header class="detalhe-topo">
+  <div>
+    <a href="{% url 'professor:painel' %}" class="voltar-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Voltar para turmas
+    </a>
+    <h1 class="detalhe-topo__titulo">{{ turma.name|default:"Turma" }}</h1>
+    <p class="detalhe-topo__subtitulo">Relatórios submetidos pelos alunos da sua turma.</p>
+  </div>
+</header>
+
+{% if erro %}
+  <div class="form__alerta" role="alert" style="margin-bottom: 20px;">{{ erro }}</div>
+{% endif %}
+
+<section class="codigos-barra" aria-label="Códigos de entrada da turma">
+  <div class="codigos-lista">
+    <span class="codigos-barra__label">Códigos da turma:</span>
+    {% if codigos %}
+      {% for codigo in codigos %}
+        <div class="codigo-chip">
+          <button
+            type="button"
+            class="codigo-chip__copiar"
+            data-codigo="{{ codigo.code }}"
+            title="Copiar código {{ codigo.code }}"
+          >
+            <span class="codigo-chip__texto">{{ codigo.code }}</span>
+            <span class="codigo-chip__status">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copiar
+            </span>
+          </button>
+          <form method="post" action="{% url 'professor:codigo_apagar' turma_id codigo.id %}" class="codigo-chip__form">
+            {% csrf_token %}
+            <button type="submit" class="botao-link" title="Remover código {{ codigo.code }}" aria-label="Remover código {{ codigo.code }}">×</button>
+          </form>
+        </div>
+      {% endfor %}
+    {% else %}
+      <span class="secao-turmas__subtitulo" style="margin: 0;">nenhum código ativo</span>
+    {% endif %}
+  </div>
+
+  <form method="post" action="{% url 'professor:codigo_gerar' turma_id %}">
+    {% csrf_token %}
+    <button type="submit" class="botao-gerar-codigo">+ Gerar novo código</button>
+  </form>
+</section>
+
+<div class="tabela-card">
+  {% if alunos %}
+    <table class="tabela-relatorios">
+      <thead>
+        <tr>
+          <th>Aluno</th>
+          <th>Planta / Canteiro</th>
+          <th>Entregue em</th>
+          <th>PDF</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for aluno in alunos %}
+          <tr>
+            <td>
+              {{ aluno.name }}
+              {% if aluno.email %}
+                <span class="tabela-aluno-email">{{ aluno.email }}</span>
+              {% endif %}
+            </td>
+            <td>{{ aluno.planta_canteiro|default:"—" }}</td>
+            <td>
+              {% if aluno.entrega %}
+                {% if aluno.entrega.data_local %}
+                  <span title="Enviado em {{ aluno.entrega.data_local|date:'d/m/Y \à\s H:i' }}">
+                    {{ aluno.entrega.data_local|date:"d \d\e F" }}
+                  </span>
+                {% else %}
+                  {{ aluno.entrega.submittedAt|slice:":10" }}
+                {% endif %}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if aluno.entrega %}
+                <a
+                  href="{{ aluno.entrega.fileUrl }}"
+                  target="_blank"
+                  rel="noopener"
+                  download="relatorio-{{ aluno.name|slugify }}.pdf"
+                  class="botao-baixar"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Baixar
+                </a>
+              {% else %}
+                <span class="status-pendente">Pendente</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="tabela-vazia">Nenhum aluno vinculado a esta turma ainda. Compartilhe um código acima para que eles entrem.</p>
+  {% endif %}
+</div>
+
+<div class="detalhe-rodape">
+  <form
+    method="post"
+    action="{% url 'professor:turma_apagar' turma_id %}"
+    onsubmit="return confirm('Apagar esta turma? Essa ação não pode ser desfeita.');"
+  >
+    {% csrf_token %}
+    <button type="submit" class="botao botao--perigo">Apagar turma</button>
+  </form>
+</div>
 {% endblock %}
 
-{% block body %}
-<div class="painel">
-  <header class="painel__cabecalho">
-    <h1>Turma</h1>
-    <a href="{% url 'professor:painel' %}" class="botao botao--primario">Voltar</a>
-  </header>
+{% block js %}
+<script>
+(function () {
+  document.querySelectorAll('.codigo-chip__copiar').forEach(function (btn) {
+    var status = btn.querySelector('.codigo-chip__status');
+    if (!status) return;
 
-  {% if erro %}<div class="form__alerta" role="alert">{{ erro }}</div>{% endif %}
+    var htmlOriginal = status.innerHTML;
 
-  <section class="painel__secao">
-    <h2>Códigos de entrada</h2>
-    <form method="post" action="{% url 'professor:codigo_gerar' turma_id %}">
-      {% csrf_token %}
-      <button type="submit" class="botao botao--primario">Gerar novo código</button>
-    </form>
+    btn.addEventListener('click', function () {
+      var codigo = btn.dataset.codigo;
+      if (!codigo) return;
 
-    {% if codigos %}
-      <ul class="lista-codigos">
-        {% for codigo in codigos %}
-          <li class="lista-codigos__item">
-            <span class="lista-codigos__code">{{ codigo.code }}</span>
-            <form method="post" action="{% url 'professor:codigo_apagar' turma_id codigo.id %}">
-              {% csrf_token %}
-              <button type="submit" class="botao-link">Apagar</button>
-            </form>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Nenhum código ativo.</p>
-    {% endif %}
-  </section>
-
-  <section class="painel__secao">
-    <h2>Alunos na turma</h2>
-    {% if alunos %}
-      <ul class="lista-entregas">
-        {% for aluno in alunos %}
-          <li class="lista-entregas__item">
-            <span>{{ aluno.name }} ({{ aluno.email }})</span>
-            {% if aluno.entrega %}
-              <a
-                href="{{ aluno.entrega.fileUrl }}"
-                target="_blank"
-                rel="noopener"
-                download="relatorio-{{ aluno.name|slugify }}.pdf"
-                class="botao botao--primario botao--pequeno"
-              >
-                Baixar relatório ({{ aluno.entrega.submittedAt|slice:":10" }})
-              </a>
-            {% else %}
-              <span class="lista-entregas__pendente">Não entregou</span>
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Nenhum aluno vinculado a esta turma ainda.</p>
-    {% endif %}
-  </section>
-
-  <section class="painel__secao">
-    <form
-      method="post"
-      action="{% url 'professor:turma_apagar' turma_id %}"
-      onsubmit="return confirm('Apagar esta turma? Essa ação não pode ser desfeita.');"
-    >
-      {% csrf_token %}
-      <button type="submit" class="botao botao--perigo">Apagar turma</button>
-    </form>
-  </section>
-</div>
+      navigator.clipboard.writeText(codigo).then(function () {
+        status.textContent = 'Copiado!';
+        btn.classList.add('codigo-chip__copiar--copiado');
+        setTimeout(function () {
+          status.innerHTML = htmlOriginal;
+          btn.classList.remove('codigo-chip__copiar--copiado');
+        }, 1800);
+      });
+    });
+  });
+})();
+</script>
 {% endblock %}
