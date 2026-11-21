@@ -362,10 +362,27 @@
   background: rgba(18, 101, 63, 0.08);
 }
 
+.voltar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--verde-700);
+  text-decoration: none;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.voltar-link:hover {
+  color: var(--verde-900);
+  transform: translateX(-2px);
+}
+
 /* ===== DETALHES DA TURMA E TABELA DE RELATÓRIOS ===== */
 .detalhe-topo {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 24px;
@@ -461,17 +478,25 @@
 }
 
 /* Barra secundária de códigos e exclusão */
+/* Barra superior de códigos de entrada */
 .codigos-barra {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 24px;
-  padding: 16px 22px;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 14px 20px;
   border: 1px solid var(--borda);
   border-radius: 14px;
   background: var(--branco);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+}
+
+.codigos-barra__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cinza-texto);
 }
 
 .codigos-lista {
@@ -484,16 +509,95 @@
 .codigo-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 12px;
-  border-radius: 8px;
+  border: 1px solid #d5e3db;
+  border-radius: 10px;
   background: var(--superficie);
+  overflow: hidden;
+}
+
+.codigo-chip__copiar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 12px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.codigo-chip__copiar:hover {
+  background: #e7f2ec;
+}
+
+.codigo-chip__texto {
   font-family: monospace;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   color: var(--verde-900);
 }
 
+.codigo-chip__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  font: 600 11px var(--fonte);
+  color: var(--verde-700);
+}
+
+.codigo-chip__copiar--copiado .codigo-chip__status {
+  background: var(--verde-700);
+  border-color: var(--verde-700);
+  color: var(--branco);
+}
+
+.codigo-chip__form {
+  display: inline-flex;
+  align-items: center;
+  border-left: 1px solid #d5e3db;
+}
+
+.botao-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--erro);
+  cursor: pointer;
+  font: 700 15px var(--fonte);
+  transition: background-color 0.15s ease;
+}
+
+.botao-link:hover {
+  background: rgba(180, 35, 24, 0.1);
+}
+
+.botao-gerar-codigo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--verde-700);
+  font: 600 13px var(--fonte);
+  color: var(--branco);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.botao-gerar-codigo:hover {
+  background: var(--verde-900);
+}
 .botao-link {
   border: 0;
   background: none;
@@ -516,6 +620,86 @@
   margin-top: 24px;
   display: flex;
   justify-content: flex-end;
+}
+
+.codigo-destaque {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 5px 6px 5px 16px;
+  border: 1.5px solid #cfe0d6;
+  border-radius: 12px;
+  background: var(--branco);
+  font-family: var(--fonte);
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(11, 74, 47, 0.07);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.codigo-destaque:hover {
+  border-color: var(--verde-700);
+  box-shadow: 0 4px 14px rgba(11, 74, 47, 0.12);
+}
+
+.codigo-destaque:active {
+  transform: scale(0.98);
+}
+
+.codigo-destaque__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cinza-texto);
+}
+
+.codigo-destaque__valor {
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--verde-900);
+}
+
+.codigo-destaque__acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--verde-700);
+  color: var(--branco);
+  font-size: 12px;
+  font-weight: 700;
+  transition: background-color 0.15s ease;
+}
+
+.codigo-destaque:hover .codigo-destaque__acao {
+  background: var(--verde-900);
+}
+
+.codigo-destaque--copiado {
+  border-color: var(--verde-700);
+  background: #f2faf5;
+}
+
+.codigo-destaque--copiado .codigo-destaque__acao {
+  background: var(--verde-900);
+}
+
+.tabela-aluno-email {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--cinza-texto);
+}
+
+.tabela-vazia {
+  padding: 36px 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--cinza-texto);
 }
 
 @media (max-width: 860px) {

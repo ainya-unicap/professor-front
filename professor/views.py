@@ -1,5 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 
 from core.api import ErroAPI, criar_instituicao, criar_periodo, listar_instituicoes, listar_periodos
@@ -141,19 +143,91 @@ def turma_criar(request):
     })
 
 
+def _extrair_texto_campo(dados, chaves):
+    if not isinstance(dados, dict):
+        return None
+    for chave in chaves:
+        valor = dados.get(chave)
+        if isinstance(valor, str) and valor.strip():
+            return valor.strip()
+        if isinstance(valor, dict):
+            nome = (
+                valor.get("name")
+                or valor.get("nome")
+                or valor.get("title")
+                or valor.get("titulo")
+                or valor.get("species")
+                or valor.get("especie")
+                or valor.get("code")
+                or valor.get("codigo")
+            )
+            if isinstance(nome, str) and nome.strip():
+                return nome.strip()
+    return None
+
+
+def _extrair_planta_canteiro(aluno, entrega):
+    chaves_planta = (
+        "plant", "planta", "plantName", "plant_name", "nomePlanta", "nome_planta",
+        "forage", "forrageira", "species", "especie", "cultura",
+    )
+    chaves_canteiro = (
+        "plot", "canteiro", "plotName", "plot_name", "nomeCanteiro", "nome_canteiro",
+        "parcela", "area",
+    )
+
+    planta = _extrair_texto_campo(entrega, chaves_planta) or _extrair_texto_campo(aluno, chaves_planta)
+    canteiro = _extrair_texto_campo(entrega, chaves_canteiro) or _extrair_texto_campo(aluno, chaves_canteiro)
+
+    if planta and canteiro and planta != canteiro:
+        return f"{planta} · {canteiro}"
+    return planta or canteiro or ""
+
+
 @professor_obrigatorio
 def turma_detalhe(request, turma_id):
     erro = None
+    turma = None
     codigos = []
     alunos = []
+    entregas = []
     try:
+        turmas = com_renovacao(request, turmas_api.listar_turmas)
+        turma = next((t for t in turmas if str(t.get("id")) == str(turma_id)), None)
         codigos = com_renovacao(request, turmas_api.listar_codigos, turma_id)
         alunos = com_renovacao(request, turmas_api.listar_alunos, turma_id)
     except ErroAPI as e:
         erro = e.mensagem
 
+    try:
+        entregas = com_renovacao(request, turmas_api.listar_entregas, turma_id)
+    except ErroAPI:
+        entregas = []
+
+    entregas_por_aluno = {}
+    if isinstance(entregas, list):
+        for item in entregas:
+            chave_aluno = item.get("student_id") or item.get("aluno_id") or item.get("user_id")
+            if chave_aluno:
+                entregas_por_aluno[str(chave_aluno)] = item
+
+    for aluno in alunos:
+        entrega = aluno.get("entrega") or entregas_por_aluno.get(str(aluno.get("id")))
+        if isinstance(entrega, dict):
+            aluno["entrega"] = entrega
+            bruto = entrega.get("submittedAt") or entrega.get("deliveredAt") or entrega.get("createdAt")
+            if bruto:
+                dt = parse_datetime(str(bruto))
+                if dt is not None:
+                    if timezone.is_naive(dt):
+                        dt = timezone.make_aware(dt, timezone.utc)
+                    entrega["data_local"] = timezone.localtime(dt)
+
+        aluno["planta_canteiro"] = _extrair_planta_canteiro(aluno, entrega)
+
     return render(request, "professor/turma_detalhe.html", {
         "usuario": request.usuario,
+        "turma": turma,
         "turma_id": turma_id,
         "codigos": codigos,
         "alunos": alunos,
